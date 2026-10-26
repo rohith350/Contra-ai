@@ -1,0 +1,119 @@
+:root {
+  /* Modern Dark Color Tokens */
+  --dp-color-ground: #050505;
+  --dp-color-panel: #0e0e0e;
+  --dp-color-hairline: #222222;
+  --dp-color-hairline-2: #303030;
+  --dp-color-bright: #f2f2f2;
+  --dp-color-read: #a6a9ad;
+  --dp-color-meta: #8a8d91;
+  --dp-color-live: #3fd6c6;
+  --dp-color-inverse-ink: #0a0a0a;
+  --dp-color-dim: #96999d;
+
+  /* Typography */
+  --dp-typography-face: "Geist", "Modern Dark Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --dp-typography-mono: "Geist Mono", "Modern Dark Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Spacing */
+  --dp-spacing-gutter: 48px;
+  --dp-spacing-gap: 24px;
+  --dp-spacing-max: 1360px;
+
+  /* Radii & Borders */
+  --dp-radius-panel: 6px;
+  --dp-radius-pill: 999px;
+  --dp-border-hairline: 1px;
+
+  /* Motion */
+  --dp-motion-duration: 120ms;
+  --dp-motion-ease: ease-out;
+
+  /* Legacy & Semantic Bindings */
+  --bg: var(--dp-color-ground);
+  --text: var(--dp-color-read);
+  --text-h: var(--dp-color-bright);
+  --border: var(--dp-color-hairline);
+  --code-bg: var(--dp-color-panel);
+  --accent: var(--dp-color-live);
+  --accent-bg: rgba(63, 214, 198, 0.1);
+  --accent-border: var(--dp-color-live);
+  --social-bg: var(--dp-color-panel);
+  --shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.8), 0 4px 12px -2px rgba(0, 0, 0, 0.6);
+
+  font: 15px/1.6 var(--dp-typography-face);
+  letter-spacing: -0.01em;
+  color-scheme: dark;
+  color: var(--dp-color-read);
+  background: var(--dp-color-ground);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: var(--dp-color-ground);
+  color: var(--dp-color-read);
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  max-width: var(--dp-spacing-max);
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 0 var(--dp-spacing-gap);
+}
+
+@media (max-width: 1180px) {
+  #root {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  #root {
+    padding: 0 14px;
+  }
+}
+
+h1, h2, h3 {
+  font-family: var(--dp-typography-face);
+  color: var(--dp-color-bright);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+  color: var(--dp-color-read);
+  line-height: 1.6;
+}
+
+code, pre, .mono-data {
+  font-family: var(--dp-typography-mono);
+  font-size: 13px;
+}
+
+/* Accessible focus styling */
+:focus-visible {
+  outline: 2px solid var(--dp-color-live);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

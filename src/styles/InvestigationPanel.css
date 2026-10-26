@@ -1,0 +1,282 @@
+/* Modern Dark Investigation Panel */
+.investigation-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  box-sizing: border-box;
+}
+
+/* Form & Input Elements */
+.hypothesis-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hypothesis-label {
+  font-family: var(--dp-typography-face);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--dp-color-bright);
+}
+
+.hypothesis-hint {
+  font-family: var(--dp-typography-mono);
+  font-size: 11px;
+  color: var(--dp-color-meta);
+}
+
+.input-action-row {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  width: 100%;
+}
+
+.input-field-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 18px;
+  color: var(--dp-color-meta);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.hypothesis-input {
+  width: 100%;
+  background: #101010;
+  border: 1px solid #2a2a2a;
+  border-radius: var(--dp-radius-pill);
+  padding: 15px 20px 15px 48px;
+  font-size: 14.5px;
+  font-family: var(--dp-typography-face);
+  color: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  transition: all var(--dp-motion-duration) var(--dp-motion-ease);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.04);
+}
+
+.hypothesis-input:focus {
+  border-color: #444444;
+  background: #141414;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.hypothesis-input::placeholder {
+  color: #55585d;
+  font-size: 14px;
+}
+
+/* Primary Action: Crisp white pill button with near-black text */
+.investigate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px 26px;
+  background: #f8f9fa;
+  color: #050505;
+  font-family: var(--dp-typography-face);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  border: 1px solid #ffffff;
+  border-radius: var(--dp-radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--dp-motion-duration) var(--dp-motion-ease);
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.12);
+}
+
+.investigate-btn:hover:not(:disabled) {
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.investigate-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.investigate-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.spinner-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dp-color-live);
+}
+
+/* Interactive Sample Hypotheses */
+.sample-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.sample-title {
+  font-size: 11px;
+  color: var(--dp-color-meta);
+  font-family: var(--dp-typography-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sample-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sample-chip {
+  text-align: left;
+  background: #0d0d0d;
+  border: 1px solid #202020;
+  border-radius: var(--dp-radius-panel);
+  padding: 10px 14px;
+  color: var(--dp-color-read);
+  font-size: 13px;
+  font-family: var(--dp-typography-face);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: all var(--dp-motion-duration) var(--dp-motion-ease);
+}
+
+.chip-topic {
+  font-family: var(--dp-typography-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--dp-color-live);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chip-quote {
+  color: #cfd2d6;
+  line-height: 1.45;
+}
+
+.sample-chip:hover {
+  border-color: #383838;
+  background: #141414;
+}
+
+.sample-chip.chip-active {
+  border-color: rgba(63, 214, 198, 0.35);
+  background: #121616;
+}
+
+/* Development / Simulation Toggle & Controls */
+.dev-state-toggle-row {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.dev-toggle-btn {
+  background: transparent;
+  border: none;
+  color: #55585d;
+  font-family: var(--dp-typography-mono);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 0;
+  transition: color var(--dp-motion-duration) var(--dp-motion-ease);
+}
+
+.dev-toggle-btn:hover {
+  color: var(--dp-color-read);
+  text-decoration: underline;
+}
+
+.state-controls-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 12px;
+  background-color: #0d0d0d;
+  border: 1px solid #222222;
+  border-radius: var(--dp-radius-pill);
+}
+
+.controls-label {
+  font-family: var(--dp-typography-mono);
+  font-size: 11px;
+  color: var(--dp-color-meta);
+}
+
+.state-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.state-tab {
+  padding: 3px 8px;
+  font-size: 10.5px;
+  font-family: var(--dp-typography-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: transparent;
+  color: var(--dp-color-meta);
+  border: 1px solid transparent;
+  border-radius: var(--dp-radius-pill);
+  cursor: pointer;
+  transition: all var(--dp-motion-duration) var(--dp-motion-ease);
+}
+
+.state-tab:hover {
+  color: var(--dp-color-bright);
+}
+
+.state-tab.active {
+  color: var(--dp-color-bright);
+  background: #252525;
+}
+
+.state-tab.active[data-state='listening'],
+.state-tab.active[data-state='researching'],
+.state-tab.active[data-state='report-ready'] {
+  color: var(--dp-color-live);
+  border-color: rgba(63, 214, 198, 0.35);
+}
+
+@media (max-width: 680px) {
+  .input-action-row {
+    flex-direction: column;
+  }
+  .investigate-btn {
+    width: 100%;
+  }
+}

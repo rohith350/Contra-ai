@@ -1,0 +1,91 @@
+.falsification-card {
+  background: var(--dp-color-panel);
+  border: 1px solid var(--dp-color-hairline);
+  border-radius: var(--dp-radius-panel);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+}
+
+.falsification-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.falsification-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.falsification-badge {
+  font-family: var(--dp-typography-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dp-color-live);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.falsification-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--dp-color-bright);
+  letter-spacing: -0.02em;
+}
+
+.falsification-sub {
+  font-size: 14.5px;
+  color: var(--dp-color-read);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.falsification-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.plan-item {
+  background: #090909;
+  border: 1px solid var(--dp-color-hairline);
+  border-radius: var(--dp-radius-panel);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.highlight-plan {
+  border-color: rgba(63, 214, 198, 0.35);
+  background: #0c1212;
+}
+
+.highlight-plan .plan-label {
+  color: var(--dp-color-live);
+}
+
+.plan-label {
+  font-family: var(--dp-typography-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dp-color-meta);
+  letter-spacing: 0.04em;
+}
+
+.plan-text {
+  font-size: 13.5px;
+  color: var(--dp-color-bright);
+  margin: 0;
+  line-height: 1.55;
+}
+
+@media (max-width: 800px) {
+  .falsification-grid {
+    grid-template-columns: 1fr;
+  }
+}

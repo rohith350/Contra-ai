@@ -1,0 +1,234 @@
+/* Modern Dark Investigation Dashboard Styles */
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Top App Nav */
+.dashboard-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--dp-color-hairline);
+  margin-bottom: 28px;
+}
+
+.dash-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-to-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--dp-radius-pill);
+  background: var(--dp-color-panel);
+  border: 1px solid var(--dp-color-hairline);
+  color: var(--dp-color-read);
+  font-family: var(--dp-typography-face);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--dp-motion-duration) var(--dp-motion-ease);
+}
+
+.back-to-home-btn:hover {
+  color: var(--dp-color-bright);
+  border-color: var(--dp-color-hairline-2);
+  background: #141414;
+}
+
+.dash-divider {
+  width: 1px;
+  height: 18px;
+  background-color: var(--dp-color-hairline);
+}
+
+.dash-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--dp-color-live);
+}
+
+.dash-title {
+  font-family: var(--dp-typography-face);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--dp-color-bright);
+}
+
+.dash-dim {
+  color: var(--dp-color-meta);
+  font-weight: 400;
+}
+
+.dash-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: var(--dp-color-panel);
+  border: 1px solid var(--dp-color-hairline);
+  border-radius: var(--dp-radius-pill);
+}
+
+/* Two-column workbench layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: var(--dp-spacing-gutter);
+  align-items: start;
+  padding-bottom: 48px;
+}
+
+.dashboard-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dash-panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.dash-badge {
+  font-family: var(--dp-typography-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--dp-color-live);
+  text-transform: uppercase;
+}
+
+.dash-heading {
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  color: var(--dp-color-bright);
+}
+
+.dash-sub {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--dp-color-read);
+}
+
+.dash-workbench-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: var(--dp-color-panel);
+  border: 1px solid var(--dp-color-hairline);
+  border-radius: var(--dp-radius-panel);
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* Neural Core Viewport Card */
+.dashboard-right-col {
+  display: flex;
+  justify-content: center;
+  position: sticky;
+  top: 24px;
+}
+
+.sphere-viewport-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #090909;
+  border: 1px solid var(--dp-color-hairline);
+  border-radius: var(--dp-radius-panel);
+  padding: 18px;
+  box-sizing: border-box;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+}
+
+.viewport-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.vp-title {
+  font-family: var(--dp-typography-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--dp-color-bright);
+}
+
+.vp-tag {
+  font-family: var(--dp-typography-mono);
+  font-size: 10px;
+  color: var(--dp-color-live);
+  letter-spacing: 0.05em;
+}
+
+.sphere-center-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.viewport-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid #1a1a1a;
+  margin-top: 8px;
+}
+
+.vp-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-label {
+  font-family: var(--dp-typography-mono);
+  font-size: 9.5px;
+  color: var(--dp-color-meta);
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-family: var(--dp-typography-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--dp-color-bright);
+}
+
+@media (max-width: 1100px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .dashboard-right-col {
+    position: static;
+  }
+}
