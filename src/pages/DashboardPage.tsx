@@ -10,6 +10,7 @@ import { SteelmanRedTeam } from '../components/SteelmanRedTeam'
 import { EvidenceReceipts } from '../components/EvidenceReceipts'
 import { FalsificationCard } from '../components/FalsificationCard'
 import { SAMPLE_INVESTIGATION_REPORT } from '../services/sample-report'
+import { createInvestigation, subscribeInvestigationEvents } from '../services/api'
 import '../styles/DashboardPage.css'
 
 interface DashboardPageProps {
@@ -62,57 +63,15 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
   const [coverageScore, setCoverageScore] = useState(18)
   const [activeQuery, setActiveQuery] = useState('')
   const [timelineStepIndex, setTimelineStepIndex] = useState(0)
-  const timeoutsRef = useRef<number[]>([])
-
-  const liveTimeline: TimelineEvent[] = [
-    {
-      id: 'step-1',
-      timeOffset: '0.0s',
-      type: 'search',
-      query: activeHypothesis ? `${activeHypothesis.slice(0, 50)}... empirical studies 2025` : 'empirical meta-analysis 2025',
-      headline: 'Decomposing Hypothesis & Formulating Search Vectors',
-      detail: 'Isolating fundamental causal claims from rhetoric; querying independent scientific indexes for null and contradictory results.',
-    },
-    {
-      id: 'step-2',
-      timeOffset: '1.2s',
-      type: 'discovery',
-      headline: 'Initial Corroborating Data Surface Identified',
-      detail: 'Identified supporting empirical data in peer-reviewed repositories, highlighting boundary conditions.',
-      source: 'National Science Foundation Dataset',
-    },
-    {
-      id: 'step-3',
-      timeOffset: '2.5s',
-      type: 'contradiction',
-      headline: 'Disconfirming Evidence Discovered',
-      detail: 'Found counter-studies demonstrating significant variance when controlling for baseline demographics and sample bias.',
-      source: 'International Journal of Empirical Science',
-    },
-    {
-      id: 'step-4',
-      timeOffset: '3.6s',
-      type: 'gap',
-      headline: 'Methodological Sensitivity Gap Flagged',
-      detail: 'Replication rate drops significantly under non-standard test conditions, preventing unilateral consensus.',
-      source: 'Meta-Science Synthesis Review',
-    },
-    {
-      id: 'step-5',
-      timeOffset: '4.8s',
-      type: 'decision',
-      headline: 'Dialectical Synthesis & Falsification Criteria Compiled',
-      detail: 'Integrated affirmative and contradictory citations into balanced dossier with calibrated uncertainty score.',
-      source: 'NVIDIA Nemotron Reasoning Engine',
-    },
-  ]
-
-  const decomposedClaims = [
+  const [liveTimeline, setLiveTimeline] = useState<TimelineEvent[]>([])
+  const [decomposedClaims, setDecomposedClaims] = useState<string[]>([
     'Initial fabrication and manufacturing carbon load',
     'Operational powertrain thermal efficiency differential',
     'Component lifecycle durability vs replacement requirements',
     'Regional infrastructure decarbonization sensitivity',
-  ]
+  ])
+  const timeoutsRef = useRef<number[]>([])
+  const sseTeardownRef = useRef<(() => void) | null>(null)
 
   // Suggested Hypotheses
   const sampleHypotheses = [
@@ -135,20 +94,8 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
     timeoutsRef.current = []
   }
 
-  const handleStartInvestigation = (targetClaim: string, attachedSources: AttachedSource[] = []) => {
-    const trimmed = targetClaim.trim()
-    if (!trimmed || workspaceState === 'researching') return
-
-    clearAllTimeouts()
-    setActiveHypothesis(trimmed)
-    setActiveSources(attachedSources)
-    setWorkspaceState('researching')
-    setResearchStage('preparing')
-    setCoverageScore(20)
-    setTimelineStepIndex(1)
-    setActiveQuery(`${trimmed.slice(0, 45)}... meta-analysis 2025`)
-
-    // Stage progression: preparing -> researching -> analyzing -> report-ready
+  const runLocalSimulation = (trimmed: string, attachedSources: AttachedSource[]) => {
+    // Stage progression fallback: preparing -> researching -> analyzing -> report-ready
     const t0 = window.setTimeout(() => {
       setResearchStage('researching')
     }, 600)
@@ -179,7 +126,6 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
       setWorkspaceState('completed')
       setActiveTab('synthesis')
 
-      // Record in session history
       setHistory((prev) => [
         {
           id: synthesizedReport.id,
@@ -196,13 +142,117 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
     timeoutsRef.current = [t0, t1, t2, t3]
   }
 
+  const handleStartInvestigation = async (targetClaim: string, attachedSources: AttachedSource[] = []) => {
+    const trimmed = targetClaim.trim()
+    if (!trimmed || workspaceState === 'researching') return
+
+    clearAllTimeouts()
+    if (sseTeardownRef.current) {
+      sseTeardownRef.current()
+      sseTeardownRef.current = null
+    }
+
+    setActiveHypothesis(trimmed)
+    setActiveSources(attachedSources)
+    setWorkspaceState('researching')
+    setResearchStage('preparing')
+    setCoverageScore(15)
+    setTimelineStepIndex(0)
+    setActiveQuery(`${trimmed.slice(0, 45)}... meta-analysis 2025`)
+
+    const initialEvents: TimelineEvent[] = [
+      {
+        id: 'init-step-1',
+        timeOffset: '0.0s',
+        type: 'search',
+        query: `${trimmed.slice(0, 50)}... empirical studies 2025`,
+        headline: 'Decomposing Hypothesis & Formulating Search Vectors',
+        detail: 'Isolating fundamental causal claims from rhetoric; querying independent scientific indexes for null and contradictory results.',
+        source: 'NVIDIA Nemotron Reasoner',
+      },
+    ]
+    setLiveTimeline(initialEvents)
+
+    try {
+      const res = await createInvestigation(trimmed, attachedSources)
+      const invId = res.id
+
+      const unsubscribe = subscribeInvestigationEvents(invId, {
+        onProgress: (data) => {
+          if (typeof data.progress_percent === 'number') {
+            setCoverageScore(data.progress_percent)
+          }
+          if (data.current_stage) {
+            if (data.current_stage === 'preparing' || data.current_stage === 'researching' || data.current_stage === 'analyzing') {
+              setResearchStage(data.current_stage)
+            }
+          }
+          if (data.current_query) {
+            setActiveQuery(data.current_query)
+          }
+          if (data.claims_decomposed && data.claims_decomposed.length > 0) {
+            setDecomposedClaims(data.claims_decomposed)
+          }
+        },
+        onTimeline: (event) => {
+          setLiveTimeline((prev) => {
+            if (prev.some((e) => e.id === event.id)) return prev
+            return [...prev, event]
+          })
+          setTimelineStepIndex((idx) => idx + 1)
+        },
+        onComplete: (report) => {
+          setCoverageScore(100)
+          setActiveReport(report)
+          setWorkspaceState('completed')
+          setActiveTab('synthesis')
+
+          setHistory((prev) => [
+            {
+              id: report.id,
+              hypothesis: trimmed,
+              timestamp: 'Just now',
+              certaintyScore: report.certaintyScore,
+              biasIndex: report.biasIndex,
+              sourcesCount: attachedSources.length,
+            },
+            ...prev.filter((h) => h.hypothesis !== trimmed),
+          ])
+        },
+        onInconclusive: ({ report }) => {
+          setCoverageScore(100)
+          setActiveReport(report)
+          setWorkspaceState('completed')
+          setActiveTab('synthesis')
+        },
+        onError: (err) => {
+          console.warn('Backend stream error, running simulation fallback:', err)
+          runLocalSimulation(trimmed, attachedSources)
+        },
+      })
+
+      sseTeardownRef.current = unsubscribe
+    } catch (err) {
+      console.warn('Backend unreachable, using local mock simulation:', err)
+      runLocalSimulation(trimmed, attachedSources)
+    }
+  }
+
   const handleCancelInvestigation = () => {
     clearAllTimeouts()
+    if (sseTeardownRef.current) {
+      sseTeardownRef.current()
+      sseTeardownRef.current = null
+    }
     setWorkspaceState('welcome')
   }
 
   const handleNewInvestigation = () => {
     clearAllTimeouts()
+    if (sseTeardownRef.current) {
+      sseTeardownRef.current()
+      sseTeardownRef.current = null
+    }
     setWorkspaceState('welcome')
     setHypothesis('')
     setActiveHypothesis('')
@@ -723,7 +773,10 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
                       <h3 className="pane-title">Live Research Audit Trail</h3>
                       <p className="pane-lead">Complete sequential record of autonomous queries dispatched by Contra AI.</p>
                     </div>
-                    <LiveTimeline timeline={liveTimeline} activeStepIndex={4} />
+                    <LiveTimeline
+                      timeline={activeReport.timeline && activeReport.timeline.length > 0 ? activeReport.timeline : liveTimeline}
+                      activeStepIndex={activeReport.timeline && activeReport.timeline.length > 0 ? activeReport.timeline.length - 1 : 4}
+                    />
                   </div>
                 )}
               </div>
