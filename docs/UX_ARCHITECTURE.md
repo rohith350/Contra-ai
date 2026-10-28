@@ -1,136 +1,232 @@
-# Contra AI — UX Architecture Specification & Implementation Blueprint
+# Contra AI — Two-Page UX Architecture & Implementation Specification
 
 ## Executive Overview
-**Contra AI** is an evidence-driven, dialectical research agent that actively counteracts confirmation bias. Powered by NVIDIA Nemotron, Contra accepts user hypotheses, decomposes claims into underlying assumptions, dispatches autonomous adversarial search queries, evaluates empirical and contradictory evidence, and compiles transparent, source-cited Evidence Dossiers.
+**Contra AI** is an autonomous, evidence-driven research agent that challenges cognitive assumptions by investigating both supporting and contradictory evidence.
+
+In accordance with user requirements, the product user experience is consolidated into exactly **TWO primary user-facing pages**:
+1. **Landing Page (`#` or `#landing`)**: An informational overview presenting the problem of confirmation bias, Contra's dialectical methodology, the six signature capabilities, and a preview of evidence reports, with a single primary CTA into the workspace.
+2. **Investigation Dashboard (`#dashboard` or `#investigate`)**: A unified, ChatGPT-inspired research workspace featuring a left sidebar (branding, new investigation, real session history, overview link) and a main stage that smoothly transitions between states (Welcome/Intake -> Live Research Telemetry -> Evidence Dossier) without navigating across separate top-level pages.
 
 ---
 
-## 1. Product Information Architecture (4 Core Responsibilities)
-
-The application separates concerns across four distinct states/views governed by declarative client routing (`#landing`, `#investigate`, `#live`, `#dossier`):
+## 1. Two-Page Information Architecture
 
 ```
-+-----------------------------------------------------------------------------------------+
-|                                    CONTRA AI APP                                        |
-+-----------------------------------------------------------------------------------------+
++---------------------------------------------------------------------------------------------------------+
+|                                              CONTRA AI                                                  |
++---------------------------------------------------------------------------------------------------------+
        |
-       +---> 1. Landing Page (`#` or `#landing`)
-       |       - Product thesis, anti-confirmation bias philosophy, methodology pillars
-       |       - Real dialectical scenarios & architecture breakdown
-       |       - Primary CTA: "Launch Investigation Workbench" -> Navigates to Step 2
+       +---> PAGE 1: Landing Page (`#` or `#landing`)
+       |       * Strictly informational, no search inputs or live queries.
+       |       * Minimal Contra branding + top navigation ("Methodology", "Capabilities", "Evidence Preview").
+       |       * Hero: Clear value thesis — "Evidence-Driven Research Against Confirmation Bias".
+       |       * Methodology Pillars: Hypothesis Decomposition, Dialectical Search, Credibility & Synthesis.
+       |       * Six Capabilities Matrix: Clean, concise breakdown of the 6 signature features.
+       |       * Evidence Report Preview: Subtle sample dossier card.
+       |       * Prominent Action: "Start Investigating" button -> opens Page 2 (`#dashboard`).
        |
-       +---> 2. Start Investigation (`#investigate`)
-       |       - Hypothesis intake & claim formulation
-       |       - Interactive claim templates / examples
-       |       - Preliminary search depth & bias parameters
-       |       - Primary Action: "Initialize Autonomous Investigation" -> Transitions to Step 3
-       |
-       +---> 3. Live Investigation (`#live`)
-       |       - Observable adaptive research telemetry with NVIDIA Nemotron
-       |       - 3D Neural Core in dynamic synaptic mode (`researching`)
-       |       - Adaptive Investigation Engine: live query dispatch & coverage checks
-       |       - Real-time research timeline (queries, discoveries, contradictions, stopping rationale)
-       |       - On completion: Transitions to Step 4
-       |
-       +---> 4. Evidence Dossier (`#dossier`)
-               - Executive Findings & Calibrated Bias Metric
-               - Assumption Autopsy: subclaims, vulnerabilities & evidence coverage
-               - Steelman vs. Red Team: fair affirmative vs. substantive counter-case
-               - Evidence Receipts: full citations, source stances, credibility, limitations
-               - Falsification Plan: empirical testing criteria & conditions that invalidate the hypothesis
+       +---> PAGE 2: Investigation Dashboard (`#dashboard`)
+               * Single, connected research workspace.
+               * LEFT SIDEBAR:
+               |   - Contra branding & status pill ("v1.0 • Dialectical Engine").
+               |   - "New Investigation" button (`+` icon, resets workspace to clean intake state).
+               |   - Investigation History list (real stored queries/reports with timestamps).
+               |   - Clear return link: "← Overview" (returns to Landing Page).
+               |
+               * MAIN WORKSPACE (Dynamic Single-Canvas Lifecycle):
+                   - STATE A: Welcome / Standby (Empty)
+                       * Centered welcome title: "What hypothesis shall we challenge?"
+                       * Subtitle explaining empirical cross-examination of supporting vs opposing evidence.
+                       * Compact 3D Neural Core in subtle `idle` / `listening` state (non-distracting).
+                       * Quick-start prompt suggestion chips (e.g. EV emissions, remote work, sodium intake).
+                       * Large, accessible hypothesis input area with submit button.
+                   - STATE B: Active Investigation (Researching)
+                       * Compact claim badge at the top showing the active query.
+                       * Adaptive Investigation Engine card (query planner, coverage satisfaction %, stopping rationale).
+                       * Live Investigation Timeline (chronological event stream: searches, discoveries, contradictions).
+                       * 3D Neural Core in gentle `researching` pulse mode (retained as subtle visual indicator).
+                       * Cancellation action: "Cancel Run" (returns to input).
+                   - STATE C: Completed Investigation (Evidence Dossier in Same Workspace)
+                       * Dossier Header: Hypothesis title, date, certainty score %, calibrated bias rating.
+                       * Navigation tabs/segmented control within workspace:
+                           [ Executive Summary ]  [ Assumption Autopsy ]  [ Steelman vs Red Team ]  [ Evidence Receipts ]  [ Falsification Plan ]
+                       * Tab 1: Executive Summary & Synthesis with key takeaways.
+                       * Tab 2: Assumption Autopsy (deconstructed subclaims, vulnerabilities, evidence coverage).
+                       * Tab 3: Steelman vs. Red Team (bilateral dialectic: affirmative case vs. counter-evidence).
+                       * Tab 4: Evidence Receipts (granular citations with stance tags, excerpts, methodology, URLs).
+                       * Tab 5: Falsification Plan (operational test procedures and empirical refutation thresholds).
+                       * Ability to return to Live Timeline via toggle without losing active investigation results.
 ```
 
 ---
 
-## 2. Page-by-Page Specifications & Wireframes
+## 2. Page Specifications
 
-### A. Landing Page (`#landing` or root `#`)
-* **Purpose**: Informational homepage. Explains why confirmation bias corrupts research and how Contra solves affirmative sycophancy.
-* **Layout**: Single column, centered reading container (max 1120px).
+### Page 1: Landing Page (`#` / `#landing`)
+* **Role**: Informational portal for visitors and evaluators.
+* **Layout**: Centered responsive single-column layout (max-width `1180px`), clean dark backdrop (`#050505`).
 * **Sections**:
-  1. Top Navigation: Brand identity (`CONTRA / AI`), methodology jump-links, `"Launch Workbench"` CTA.
-  2. Hero Section: NVIDIA Nemotron tag, headline, product explanation, dual action buttons (`"Start Investigation"`, `"Explore Architecture"`).
-  3. System Architecture: 4-pillar methodology (`Hypothesis Decomposition`, `Dialectical Evidence Search`, `Source Credibility`, `Dossier Synthesis`).
-  4. Dialectical Analysis Scenarios: Concrete examples showing affirmative claims cross-examined against counter-evidence.
-  5. CTA Banner & Preserved Ecosystem documentation.
+  1. **Minimal Header**: Brand lockup (`CONTRA / AI`), subtle links (`#methodology`, `#capabilities`, `#preview`), and primary pill button `"Start Investigating"`.
+  2. **Hero Statement**:
+     - Eyebrow: `NVIDIA NEMOTRON DIALECTICAL AGENT`
+     - Headline: `Research that challenges your assumptions.`
+     - Subhead: `Most AI search confirms what you want to hear. Contra independently investigates both supporting and contradictory evidence, identifying structural assumptions, evidence gaps, and falsification conditions.`
+     - Primary CTA: `"Start Investigating"` (White pill button -> `#dashboard`).
+  3. **The Problem & Methodology**:
+     - Concise 3-column or 4-column cards: Hypothesis Decomposition, Adversarial Retrieval, Credibility & Gap Analysis, Calibrated Synthesis.
+  4. **The Six Signature Capabilities**:
+     - 6 compact cards (Adaptive Engine, Assumption Autopsy, Live Timeline, Steelman vs Red Team, Evidence Receipts, Falsification Plan) describing how each capability protects research integrity.
+  5. **Dossier Preview**:
+     - A subtle, styled mockup showing an excerpt of an Evidence Dossier (e.g. EV lifecycle emissions) to set expectations of output quality.
+  6. **Footer**:
+     - Minimal copyright, architecture link, and back-to-top control.
 
-### B. Start Investigation (`#investigate`)
-* **Purpose**: Hypothesis intake. Focused workbench for formulating clear, falsifiable hypotheses.
-* **Layout**: Two columns (1.15fr / 0.85fr).
-* **Left Column**:
-  - Breadcrumb navigation (`← Overview`).
-  - Prominent hypothesis input with search glyph and keyboard shortcuts (`Enter` to submit).
-  - Categorized hypothesis sample cards (Engineering, Biomedicine, Macroeconomics).
-  - Investigation depth indicator & methodology toggles.
-  - Primary button: `"Initialize Investigation"`.
-* **Right Column**:
-  - Neural Core in `listening` standby.
-  - Pre-flight heuristic checklist (Claim clarity, empirical testability, dialectical scope).
-
-### C. Live Investigation (`#live`)
-* **Purpose**: Observable research process. Transparent, real-time feedback during evidence retrieval.
-* **Layout**: Two columns (1.1fr / 0.9fr).
-* **Left Column**:
-  - Active claim focus badge.
-  - **Adaptive Investigation Engine** status card: Claim decomposition, query dispatch tracker, coverage check progress bar, stopping rationale.
-  - **Live Investigation Timeline**: Sequential event log of queries dispatched, sources evaluated, and gaps identified.
-* **Right Column**:
-  - Framed 3D Neural Core in `researching` state with telemetry HUD.
-  - Real-time telemetry indicators (Nodes Active, Synapses Fired, Evidence Sources Queried).
-  - Immediate view action once complete: `"Open Evidence Dossier"`.
-
-### D. Evidence Dossier (`#dossier`)
-* **Purpose**: Final comprehensive findings, structured analysis, and falsification criteria.
-* **Layout**: Hierarchical structured report container (max 1280px).
-* **Sections**:
-  1. Dossier Header: Target hypothesis, investigation timestamp, verification certainty rating, and navigation controls (`← New Investigation`, `Print / Export`).
-  2. **Assumption Autopsy**: Visual breakdown of underlying premises, confidence ratings, and identified vulnerabilities.
-  3. **Steelman vs. Red Team**: Side-by-side comparative analysis of the strongest affirmative argument vs. the strongest counter-argument.
-  4. **Evidence Receipts**: Interactive table/cards of cited sources with stance tags (`Supporting`, `Contradicting`, `Neutral`), methodology notes, and external URLs.
-  5. **Falsification Plan**: Operational criteria specifying what empirical finding would invalidate or alter the conclusion.
-
----
-
-## 3. Modern Dark Design Tokens
-
-All interfaces adhere strictly to the established design foundation:
-* **Backgrounds**: `--dp-color-ground: #050505`, `--dp-color-panel: #0e0e0e`, `--dp-color-hairline: #222222`.
-* **Accents & Signals**: `--dp-color-live: #3fd6c6` (mint for active status & truth signals).
-* **Typography**: Geist Sans for headings and reading copy; Geist Mono for metadata, source details, and telemetry.
-* **Buttons**: White pill buttons with `#0a0a0a` text for primary actions; graphite bordered pills for secondary.
-* **Maximum Width**: `1360px`, respecting desktop gutters (48px) and mobile gutters (20px).
-* **Motion**: 120ms transitions with immediate `prefers-reduced-motion` compliance.
-
----
-
-## 4. Feature Placement & Data Contracts
-
-| Feature | Primary Location | Supporting Location | Data Contract / Fields | Fallback Behavior |
-| :--- | :--- | :--- | :--- | :--- |
-| **1. Adaptive Investigation Engine** | Live Investigation (`#live`) | Start (`#investigate`) | `claimDecomposition: string[]`, `activeQuery: string`, `coverageScore: number`, `stoppingRationale: string` | Displays heuristic decomposition based on user prompt |
-| **2. Assumption Autopsy** | Evidence Dossier (`#dossier`) | Live Investigation (`#live`) | `assumptions: { premise: string, status: 'verified' \| 'challenged' \| 'unresolved', vulnerability: string }[]` | Formats extracted subclaims with explicit uncertainty notices |
-| **3. Live Investigation Timeline** | Live Investigation (`#live`) | Dossier Audit Log | `timeline: { id: string, timestamp: string, type: 'search' \| 'evidence' \| 'gap' \| 'decision', detail: string }[]` | Generates sequential telemetry steps tracking engine state |
-| **4. Steelman vs. Red Team** | Evidence Dossier (`#dossier`) | Landing (Examples) | `steelman: { title: string, argument: string, keyEvidence: string[] }`, `redTeam: { title: string, argument: string, keyEvidence: string[] }` | Formulates balanced dual-stream arguments without affirmative sycophancy |
-| **5. Evidence Receipts** | Evidence Dossier (`#dossier`) | Research Reports | `receipts: { id: string, title: string, url: string, source: string, date: string, stance: 'supporting' \| 'contradicting', excerpt: string, limitation: string }[]` | Presents cited sources with explicit stances; never fakes broken URLs |
-| **6. Falsification Plan** | Evidence Dossier (`#dossier`) | Report Footer | `falsification: { testProcedure: string, measurableMetric: string, thresholdForFalsification: string }` | Provides concrete operational tests that would change the stance |
+### Page 2: Investigation Dashboard (`#dashboard`)
+* **Role**: The unified ChatGPT-style working environment.
+* **Layout**:
+  - Two-pane desktop layout: Fixed/collapsible **Left Sidebar** (`260px` width) and fluid **Main Workspace** (`calc(100% - 260px)`).
+  - Tablet/Mobile: Responsive off-canvas sliding sidebar with drawer toggle button.
+* **Left Sidebar**:
+  - Top: Contra AI logo with live mint heartbeat indicator.
+  - Action: `"New Investigation"` white pill button with `+` icon.
+  - Section Header: `RECENT INVESTIGATIONS`
+  - History List: Real history items recorded during the session (hypothesis title, timestamp, status). Clicking loads the completed report or active state.
+  - Footer: Clear navigation link `"← Overview"` returning to the Landing Page.
+* **Main Workspace States**:
+  - **1. Welcome / Standby State (No active run)**:
+    - Clean centered container (`max-width: 760px`).
+    - Title: `"Challenge a hypothesis with empirical evidence."`
+    - Subtitle: `"Enter a claim, scientific proposition, or strategic assumption. Contra will retrieve supporting citations and adversarial counter-arguments."`
+    - Compact 3D Neural Core: Height `180px`, rendered cleanly in `idle` mode.
+    - Quick-select prompt chips:
+      * *"Electric vehicles have higher lifecycle emissions than modern hybrids."*
+      * *"AI code generation increases defect density in critical systems."*
+      * *"Remote work decreases long-term engineering innovation."*
+    - Prompt Input Box: Auto-expanding textarea or large input with submit button, character counter, and keyboard submit (`Enter` to submit, `Shift+Enter` for newline).
+  - **2. Researching State (Telemetry)**:
+    - Active query banner with hypothesis and elapsed time.
+    - Adaptive Investigation Engine progress: Coverage progress bar (e.g. 18% -> 100%), active query vector, coverage check reasoning.
+    - Live Timeline: Chronological event stream with typed badges (`search`, `discovery`, `contradiction`, `gap`, `synthesis`).
+    - Compact Neural Core in `researching` state with pulse indicator.
+    - Stop / Cancel button.
+  - **3. Completed State (Evidence Dossier)**:
+    - Rendered in the main workspace without page reload or route hopping.
+    - Header: Evaluated claim, timestamp, certainty score %, bias classification (`Balanced Evidence`, `Affirmative Bias`, `Contradictory Stance`).
+    - Tabbed Navigation Bar:
+      * `Executive Synthesis` (Verdict, Key findings, uncertainty level)
+      * `Assumption Autopsy` (Premises, structural vulnerabilities, evidence coverage)
+      * `Steelman vs Red Team` (Bilateral argument matrix)
+      * `Evidence Receipts` (Granular citations, stance badges, excerpts, links)
+      * `Falsification Plan` (Empirical testing conditions)
+      * `Timeline Telemetry` (Toggle to inspect the investigation audit trail)
+    - Action Bar: `"New Investigation"`, `"Copy Summary"`, `"Export Dossier"`.
+  - **4. Error & Inconclusive States**:
+    - Graceful error banner with retry option if API fails.
+    - Inconclusive notification if evidence gap satisfaction cannot be achieved.
 
 ---
 
-## 5. Implementation Phases
+## 3. How the Six Signature Capabilities Appear in the Workflow
 
-1. **Phase 1**: Types & Data Models (`src/types/investigation.ts`).
-2. **Phase 2**: Navigation Router (`src/hooks/useNavigation.ts`) supporting `#landing`, `#investigate`, `#live`, and `#dossier`.
-3. **Phase 3**: Component Architecture:
-   - `src/components/AdaptiveEngineCard.tsx` (Live progress & stopping logic).
-   - `src/components/LiveTimeline.tsx` (Chronological research events).
-   - `src/components/AssumptionAutopsy.tsx` (Deconstructed premises & weaknesses).
-   - `src/components/SteelmanRedTeam.tsx` (Bilateral argument synthesis).
-   - `src/components/EvidenceReceipts.tsx` (Cited sources & stance classification).
-   - `src/components/FalsificationCard.tsx` (Hypothesis invalidation criteria).
-4. **Phase 4**: Dedicated Pages:
-   - `src/pages/HomePage.tsx` (Strictly informational).
-   - `src/pages/StartInvestigationPage.tsx` (Input & hypothesis formulation).
-   - `src/pages/LiveInvestigationPage.tsx` (Engine telemetry & 3D sphere).
-   - `src/pages/EvidenceDossierPage.tsx` (Final findings, receipts & falsification plan).
-5. **Phase 5**: Verification & Polish:
-   - Build validation (`npm run build`), linter checks (`npm run lint`), responsive checks.
+| # | Capability | Workflow Phase | Dashboard Placement & Interaction |
+|---|---|---|---|
+| **1** | **Adaptive Investigation Engine** | Active Research & Dossier | Displayed as live coverage card during search (`AdaptiveEngineCard.tsx`); summarized in Dossier header with stopping rationale. |
+| **2** | **Assumption Autopsy** | Completed Report | Dedicated tab in Dossier workspace (`AssumptionAutopsy.tsx`); exposes premise deconstruction, vulnerability rating, and coverage. |
+| **3** | **Live Investigation Timeline** | Active Research & Review | Primary view during research (`LiveTimeline.tsx`); accessible anytime via the "Timeline Telemetry" tab in the completed dossier. |
+| **4** | **Steelman vs. Red Team** | Completed Report | Dedicated tab in Dossier workspace (`SteelmanRedTeam.tsx`); bilateral presentation of the affirmative case vs counter-evidence. |
+| **5** | **Evidence Receipts** | Completed Report | Dedicated tab in Dossier workspace (`EvidenceReceipts.tsx`); interactive list of citations with verified stances, excerpts, and URLs. |
+| **6** | **Empirical Falsification Plan** | Completed Report | Dedicated tab in Dossier workspace (`FalsificationCard.tsx`); operational test procedures and quantitative thresholds required to refute findings. |
+
+---
+
+## 4. Visual Design System & Design Tokens
+
+Consistent with [`AGENTS.md`](file:///c:/Users/Rohith%20B%20G/Contra-Ai/AGENTS.md) and existing styles:
+* **Backgrounds**:
+  - App Ground: `#050505`
+  - Sidebar Ground: `#090909`
+  - Panel / Cards: `#0e0e0e`
+  - Elevated Popups / Modals: `#141414`
+* **Borders & Dividers**:
+  - Subtle Hairline: `#1f1f1f`
+  - Focused / Hover Hairline: `#303030`
+  - Active Selection: `#3fd6c6` (1px mint)
+* **Typography**:
+  - Heading & Reading: Geist Sans (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`)
+  - Code, Meta & Telemetry: Geist Mono (`"Geist Mono", SFMono-Regular, Consolas, monospace`)
+  - Landing Hero: `clamp(2.5rem, 5vw, 4.25rem)`
+  - Page Headings: `28px - 34px`
+  - Section Headings: `18px - 22px`
+  - Body Text: `15px - 16px` (line-height `1.55`)
+  - Metadata / Badges: `12px - 13px`
+* **Accents**:
+  - Live Mint: `#3fd6c6` (status pulses, verification markers)
+  - Supporting Green: `#22c55e`
+  - Contradicting Amber/Red: `#f59e0b` / `#ef4444`
+* **Buttons**:
+  - Primary Action: White pill button (`background: #f2f2f2; color: #050505; font-weight: 550; border-radius: 9999px`)
+  - Secondary Action: Graphite outline pill (`background: #141414; border: 1px solid #2a2a2a; color: #d0d0d0`)
+* **Responsive Breakpoints**:
+  - Desktop: `> 1024px` (Full sidebar + spacious workspace)
+  - Tablet: `768px - 1024px` (Collapsible sidebar drawer)
+  - Mobile: `< 768px` (Full-width workspace, drawer sidebar, stacked cards)
+
+---
+
+## 5. Navigation & State Transitions
+
+1. **Routes**:
+   - `#` or `#landing` -> Renders `HomePage.tsx` (Informational Landing Page).
+   - `#dashboard` (or `#investigate`) -> Renders `DashboardPage.tsx` (Unified Workspace).
+   - If user visits legacy `#live` or `#dossier`, `useNavigation` smoothly directs to `#dashboard` with appropriate state preserved.
+2. **State Machine inside `DashboardPage`**:
+   - `workspaceState`: `'idle' | 'researching' | 'completed' | 'error'`
+   - `activeTab`: `'synthesis' | 'autopsy' | 'dialectic' | 'receipts' | 'falsification' | 'timeline'`
+   - `history`: Array of past investigation summaries stored in React state.
+3. **User Flow**:
+   - User on Landing Page clicks `"Start Investigating"` -> URL changes to `#dashboard` -> Workspace opens in `'idle'` welcome state.
+   - User enters hypothesis or clicks sample chip -> clicks `"Investigate"` -> Workspace shifts to `'researching'`, live telemetry runs via mock/real timeline.
+   - Research reaches 100% -> Workspace shifts to `'completed'` -> Evidence Dossier appears in the workspace with tab selector.
+   - User clicks `"New Investigation"` in the sidebar -> Workspace clears back to `'idle'` welcome state.
+   - User clicks `"← Overview"` in sidebar -> Navigates back to `#landing`.
+
+---
+
+## 6. File Architecture & Changes Plan
+
+### Files to Modify:
+1. `src/hooks/useNavigation.ts`: Simplify routes to `'landing' | 'dashboard'`, with backward compatibility for `#investigate`, `#live`, `#dossier`.
+2. `src/pages/HomePage.tsx`: Polish informational landing page with the six capabilities matrix, subtle preview, and primary CTA.
+3. `src/styles/HomePage.css`: Match refined Modern Dark typography and spacing.
+4. `src/pages/DashboardPage.tsx`: Implement the full ChatGPT-inspired workspace (Sidebar + Welcome state + Researching state + Tabbed completed Dossier).
+5. `src/styles/DashboardPage.css`: Full responsive styling for the two-pane dashboard.
+6. `src/App.tsx`: Route purely between `HomePage` and `DashboardPage`.
+
+### Files to Reuse As-Is:
+- `src/components/ContraAISphere.tsx` (3D Neural Core)
+- `src/components/AdaptiveEngineCard.tsx` (Adaptive Engine)
+- `src/components/AssumptionAutopsy.tsx` (Assumption Autopsy)
+- `src/components/LiveTimeline.tsx` (Live Timeline)
+- `src/components/SteelmanRedTeam.tsx` (Steelman vs Red Team)
+- `src/components/EvidenceReceipts.tsx` (Evidence Receipts)
+- `src/components/FalsificationCard.tsx` (Falsification Plan)
+- `src/services/sample-report.ts` (Sample research dataset)
+- `src/types/investigation.ts` (Investigation types)
+
+### Files Untouched (Protected Boundaries):
+- All backend files / external server code (teammate boundary).
+- Build and configuration files (`vite.config.ts`, `package.json`, `tsconfig.json`).
+
+---
+
+## 7. Verification Protocol
+1. **Linter**: `npm run lint` (`oxlint src`) -> 0 errors.
+2. **Build**: `npm run build` (`tsc -b && vite build`) -> 0 errors.
+3. **Browser Verification**:
+   - Check Landing Page (`#`): Informational only, contains 6 capabilities, evidence preview, "Start Investigating" button.
+   - Check Dashboard (`#dashboard`):
+     - Empty welcome state with quick prompt chips.
+     - Sidebar with New Investigation button, history, and back to Overview.
+     - Submit hypothesis -> smooth transition to active research with live telemetry.
+     - Completion -> renders full Dossier with all tabs (Synthesis, Autopsy, Dialectic, Receipts, Falsification, Timeline).
+     - Test responsive mobile drawer and reduced-motion compliance.

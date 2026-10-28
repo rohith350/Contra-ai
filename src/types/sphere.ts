@@ -1,6 +1,7 @@
 export type SphereAnimationState =
   | 'idle'
   | 'listening'
+  | 'speaking'
   | 'researching'
   | 'report-ready'
   | 'error'
@@ -11,6 +12,8 @@ export interface ContraAISphereProps {
   size?: number
   interactive?: boolean
   label?: string
+  isListening?: boolean
+  isSpeaking?: boolean
 }
 
 export interface StateVisualConfig {

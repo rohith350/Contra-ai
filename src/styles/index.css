@@ -4,12 +4,12 @@
   --dp-color-panel: #0e0e0e;
   --dp-color-hairline: #222222;
   --dp-color-hairline-2: #303030;
-  --dp-color-bright: #f2f2f2;
-  --dp-color-read: #a6a9ad;
-  --dp-color-meta: #8a8d91;
+  --dp-color-bright: #f5f5f7;
+  --dp-color-read: #c2c5c9;
+  --dp-color-meta: #9ca0a6;
   --dp-color-live: #3fd6c6;
   --dp-color-inverse-ink: #0a0a0a;
-  --dp-color-dim: #96999d;
+  --dp-color-dim: #a6aaaf;
 
   /* Typography */
   --dp-typography-face: "Geist", "Modern Dark Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -61,24 +61,30 @@ body {
 
 #root {
   width: 100%;
-  max-width: var(--dp-spacing-max);
-  margin: 0 auto;
   min-height: 100vh;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+/* Page container for informational landing page */
+.landing-container {
+  width: 100%;
+  max-width: var(--dp-spacing-max);
+  margin: 0 auto;
+  box-sizing: border-box;
   padding: 0 var(--dp-spacing-gap);
 }
 
 @media (max-width: 1180px) {
-  #root {
+  .landing-container {
     padding: 0 20px;
   }
 }
 
 @media (max-width: 560px) {
-  #root {
+  .landing-container {
     padding: 0 14px;
   }
 }

@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react'
 
-export type AppRoute = 'landing' | 'investigate' | 'live' | 'dossier'
+export type AppRoute = 'landing' | 'dashboard'
 
 export function useNavigation() {
   const [route, setRoute] = useState<AppRoute>(() => {
     const hash = window.location.hash.toLowerCase().replace('#', '')
-    if (hash === 'investigate') return 'investigate'
-    if (hash === 'live') return 'live'
-    if (hash === 'dossier') return 'dossier'
+    if (hash === 'dashboard' || hash === 'investigate' || hash === 'live' || hash === 'dossier') {
+      return 'dashboard'
+    }
     return 'landing'
   })
 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase().replace('#', '')
-      if (hash === 'investigate') setRoute('investigate')
-      else if (hash === 'live') setRoute('live')
-      else if (hash === 'dossier') setRoute('dossier')
-      else setRoute('landing')
+      if (hash === 'dashboard' || hash === 'investigate' || hash === 'live' || hash === 'dossier') {
+        setRoute('dashboard')
+      } else {
+        setRoute('landing')
+      }
     }
 
     window.addEventListener('hashchange', handleHashChange)
@@ -25,7 +26,7 @@ export function useNavigation() {
   }, [])
 
   const navigateTo = (newRoute: AppRoute) => {
-    window.location.hash = newRoute === 'landing' ? '' : `#${newRoute}`
+    window.location.hash = newRoute === 'landing' ? '' : '#dashboard'
     setRoute(newRoute)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }

@@ -1,4 +1,3 @@
-import { NextSteps } from '../components/NextSteps'
 import '../styles/HomePage.css'
 
 interface HomePageProps {
@@ -6,64 +5,77 @@ interface HomePageProps {
 }
 
 export function HomePage({ onEnterDashboard }: HomePageProps) {
-  const corePillars = [
+  const sixCapabilities = [
     {
-      step: '01',
-      title: 'Hypothesis Decomposition',
-      desc: 'Contra breaks down complex propositions into testable premises, isolating causal assertions from underlying cognitive biases.',
+      number: '01',
+      title: 'Adaptive Investigation Engine',
+      summary: 'Autonomous search vector formulation with real-time coverage satisfaction checks and explicit stopping rationale.',
     },
     {
-      step: '02',
-      title: 'Dialectical Evidence Search',
-      desc: 'Searches peer-reviewed databases and high-credibility primary sources for both supporting citations and contradictory evidence.',
+      number: '02',
+      title: 'Assumption Autopsy',
+      summary: 'Rigorous decomposition of complex claims into underlying premises, structural vulnerabilities, and evidence coverage.',
     },
     {
-      step: '03',
-      title: 'Source Credibility & Gaps',
-      desc: 'Evaluates methodological rigor, checks funding conflicts, and identifies critical evidence gaps where consensus is absent.',
+      number: '03',
+      title: 'Live Investigation Timeline',
+      summary: 'Transparent research telemetry displaying dispatched queries, discoveries, and contradictions as they unfold.',
     },
     {
-      step: '04',
-      title: 'Balanced Dossier Synthesis',
-      desc: 'Compiles cited counter-briefs with calibrated certainty ratings, helping researchers make sound, evidence-grounded decisions.',
+      number: '04',
+      title: 'Steelman vs. Red Team',
+      summary: 'Bilateral dialectic presenting the strongest affirmative case alongside substantive counter-arguments fairly.',
+    },
+    {
+      number: '05',
+      title: 'Evidence Receipts',
+      summary: 'Granular source citations with verified stance tags (Supporting, Contradicting), methodology notes, and external URLs.',
+    },
+    {
+      number: '06',
+      title: 'Empirical Falsification Plan',
+      summary: 'Operational test procedures and quantitative thresholds required to refute findings and challenge conclusions.',
     },
   ]
 
-  const sampleScenarios = [
+  const methodologySteps = [
     {
-      badge: 'Software Architecture',
-      query: 'Microservices architecture always reduces organizational latency compared to modular monoliths.',
-      analysis: 'Identifies operational overhead, distributed network failures, and Conway’s law trade-offs against modular alternatives.',
+      step: '01',
+      title: 'Decompose the Claim',
+      desc: 'Isolate underlying empirical assumptions from rhetorical confidence or cognitive bias.',
     },
     {
-      badge: 'Public Health & Nutrition',
-      query: 'High dietary sodium intake is universally detrimental regardless of potassium ratio or physical conditioning.',
-      analysis: 'Cross-examines landmark trials against recent athletic physiology research on electrolyte balance.',
+      step: '02',
+      title: 'Adversarial Retrieval',
+      desc: 'Query independent scientific indices specifically for disconfirming data and null results.',
     },
     {
-      badge: 'Economics & Energy',
-      query: 'Transitioning to 100% renewables guarantees immediate regional electrical grid stability.',
-      analysis: 'Surfaces empirical intermittency data, battery storage density limitations, and baseload infrastructure requirements.',
+      step: '03',
+      title: 'Calibrate Uncertainty',
+      desc: 'Weigh methodological rigor, sample sizes, and conflicts of interest without sycophancy.',
     },
   ]
 
   return (
-    <div className="landing-page">
+    <div className="landing-container">
+      <div className="landing-page">
       {/* Top Informational Navigation */}
-      <nav className="landing-nav">
+      <nav className="landing-nav" aria-label="Main Navigation">
         <div className="landing-brand">
-          <span className="brand-dot" />
+          <span className="brand-dot" aria-hidden="true" />
           <span className="brand-name">CONTRA <span className="brand-dim">/ AI</span></span>
         </div>
+
         <div className="landing-nav-actions">
-          <a href="#how-it-works" className="nav-link">Methodology</a>
-          <a href="#case-studies" className="nav-link">Analysis Cases</a>
+          <a href="#capabilities" className="nav-link">Capabilities</a>
+          <a href="#methodology" className="nav-link">Methodology</a>
+          <a href="#preview" className="nav-link">Dossier Preview</a>
           <button
             type="button"
             className="launch-dashboard-btn"
             onClick={onEnterDashboard}
           >
-            <span>Launch Research Lab</span>
+            <span>Start investigating</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
@@ -76,18 +88,18 @@ export function HomePage({ onEnterDashboard }: HomePageProps) {
       <header className="landing-hero">
         <div className="landing-hero-content">
           <div className="hero-pill-tag">
-            <span className="pill-dot" />
-            <span>NVIDIA NEMOTRON POWERED RESEARCH AGENT</span>
+            <span className="pill-dot" aria-hidden="true" />
+            <span>POWERED BY NVIDIA NEMOTRON</span>
           </div>
 
           <h1 className="hero-main-title">
-            The Autonomous Anti-Confirmation Bias Intelligence.
+            Evidence-driven research that challenges your assumptions.
           </h1>
 
           <p className="hero-description">
-            Human intuition instinctively searches for facts that reinforce existing beliefs.
-            <strong> Contra</strong> systematically challenges your assumptions by actively seeking out,
-            verifying, and synthesizing credible counter-evidence to reveal the complete picture.
+            Most search tools and AI models fall victim to affirmative sycophancy — confirming what you ask.
+            <strong> Contra</strong> autonomously investigates both supporting and contradictory evidence,
+            exposing vulnerabilities, evidence gaps, and empirical falsification thresholds.
           </p>
 
           <div className="hero-cta-group">
@@ -96,81 +108,151 @@ export function HomePage({ onEnterDashboard }: HomePageProps) {
               className="hero-primary-btn"
               onClick={onEnterDashboard}
             >
-              <span>Enter Investigation Workbench</span>
+              <span>Start investigating</span>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </button>
-            <a href="#how-it-works" className="hero-secondary-btn">
-              <span>Read Architecture Overview</span>
+            <a href="#capabilities" className="hero-secondary-btn">
+              <span>Explore capabilities</span>
             </a>
           </div>
         </div>
       </header>
 
-      {/* Methodology & How It Works Section */}
-      <section id="how-it-works" className="landing-section">
+      {/* Six Signature Capabilities Grid */}
+      <section id="capabilities" className="landing-section">
         <div className="section-header">
-          <span className="section-eyebrow">SYSTEM ARCHITECTURE</span>
-          <h2 className="section-title">How Contra De-biases Research</h2>
+          <span className="section-eyebrow">RESEARCH ARCHITECTURE</span>
+          <h2 className="section-title">The Six Signature Capabilities</h2>
           <p className="section-lead">
-            Traditional AI assistants validate prompt biases through affirmative sycophancy.
-            Contra enforces dual-stream adversarial analysis on every claim.
+            Every investigation executes through a non-dogmatic adversarial workflow designed to preserve research integrity.
           </p>
         </div>
 
-        <div className="pillars-grid">
-          {corePillars.map((pillar) => (
-            <div key={pillar.step} className="pillar-card">
-              <span className="pillar-step">{pillar.step}</span>
-              <h3 className="pillar-title">{pillar.title}</h3>
-              <p className="pillar-desc">{pillar.desc}</p>
+        <div className="capabilities-grid">
+          {sixCapabilities.map((cap) => (
+            <article key={cap.number} className="capability-card">
+              <span className="capability-num">{cap.number}</span>
+              <h3 className="capability-title">{cap.title}</h3>
+              <p className="capability-summary">{cap.summary}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* Methodology Section */}
+      <section id="methodology" className="landing-section">
+        <div className="section-header">
+          <span className="section-eyebrow">HOW IT WORKS</span>
+          <h2 className="section-title">De-biasing the Research Workflow</h2>
+          <p className="section-lead">
+            Contra does not blindly agree or disagree. It synthesizes findings based on empirical proof and explicit uncertainty acknowledgment.
+          </p>
+        </div>
+
+        <div className="methodology-grid">
+          {methodologySteps.map((item) => (
+            <div key={item.step} className="methodology-card">
+              <span className="methodology-step">{item.step}</span>
+              <h3 className="methodology-title">{item.title}</h3>
+              <p className="methodology-desc">{item.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Case Studies / Evidence Analysis Scenarios */}
-      <section id="case-studies" className="landing-section">
+      {/* Evidence Dossier Subtle Preview */}
+      <section id="preview" className="landing-section">
         <div className="section-header">
-          <span className="section-eyebrow">RESEARCH SCENARIOS</span>
-          <h2 className="section-title">Dialectical Fact-Checking in Action</h2>
+          <span className="section-eyebrow">EVIDENCE SYNTHESIS PREVIEW</span>
+          <h2 className="section-title">Granular, Source-Cited Receipts</h2>
           <p className="section-lead">
-            Review how Contra decomposes widely accepted dogmas and uncovers nuances often lost to confirmation bias.
+            Preview the structure of an authentic synthesized dossier before launching your own investigation.
           </p>
         </div>
 
-        <div className="scenarios-list">
-          {sampleScenarios.map((sc, i) => (
-            <div key={i} className="scenario-card">
-              <div className="scenario-top">
-                <span className="scenario-badge">{sc.badge}</span>
-                <span className="scenario-meta">ADVERSARIAL EVALUATION</span>
+        <div className="preview-container">
+          <div className="preview-card">
+            <div className="preview-header">
+              <div className="preview-badge-row">
+                <span className="preview-badge preview-badge-active">SYNTHESIZED DOSSIER</span>
+                <span className="preview-meta">HYPOTHESIS CASE STUDY</span>
               </div>
-              <h3 className="scenario-query">&ldquo;{sc.query}&rdquo;</h3>
-              <div className="scenario-analysis">
-                <span className="analysis-tag">Counter-Synthesis:</span>
-                <p className="analysis-text">{sc.analysis}</p>
+              <h3 className="preview-query">
+                &ldquo;Electric vehicles have a higher lifecycle carbon footprint than modern hybrid vehicles.&rdquo;
+              </h3>
+            </div>
+
+            <div className="preview-body">
+              <div className="preview-stat-row">
+                <div className="preview-stat">
+                  <span className="stat-label">BIAS RATING</span>
+                  <span className="stat-value text-accent">Conditional / Nuanced</span>
+                </div>
+                <div className="preview-stat">
+                  <span className="stat-label">CERTAINTY SCORE</span>
+                  <span className="stat-value">62%</span>
+                </div>
+                <div className="preview-stat">
+                  <span className="stat-label">SOURCES ANALYZED</span>
+                  <span className="stat-value">14 Studies</span>
+                </div>
+              </div>
+
+              <div className="preview-finding">
+                <span className="finding-label">EXECUTIVE CONCLUSION:</span>
+                <p className="finding-text">
+                  Manufacturing carbon deficit (40–60% higher initial emissions) is amortized within 22,000 km
+                  on average global electrical grids. However, under heavy thermal-coal grid infrastructure (&gt;80%),
+                  the breakeven extends to 85,000+ km, validating conditional counter-claims.
+                </p>
+              </div>
+
+              <div className="preview-receipts-snippet">
+                <span className="receipts-label">EVIDENCE RECEIPTS EXCERPT:</span>
+                <div className="receipt-pill-item">
+                  <span className="receipt-tag tag-support">Supporting</span>
+                  <span className="receipt-source">Argonne National Laboratory (GREET Model)</span>
+                </div>
+                <div className="receipt-pill-item">
+                  <span className="receipt-tag tag-contra">Contradicting</span>
+                  <span className="receipt-source">International Council on Clean Transportation (ICCT)</span>
+                </div>
               </div>
             </div>
-          ))}
+
+            <div className="preview-footer">
+              <button
+                type="button"
+                className="preview-cta-btn"
+                onClick={onEnterDashboard}
+              >
+                <span>Investigate this claim in Dashboard</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Direct Call to Action Banner */}
+      {/* Primary Action Footer Banner */}
       <section className="cta-banner-section">
         <div className="cta-card">
           <div className="cta-text">
-            <h2>Ready to stress-test your hypothesis?</h2>
-            <p>Access the live neural core workbench and analyze evidence across verified repositories.</p>
+            <h2>Ready to challenge a hypothesis?</h2>
+            <p>Access the investigation dashboard, dispatch adversarial queries, and review cited evidence.</p>
           </div>
           <button
             type="button"
             className="hero-primary-btn"
             onClick={onEnterDashboard}
           >
-            <span>Launch Research Lab</span>
+            <span>Start investigating</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
@@ -179,10 +261,16 @@ export function HomePage({ onEnterDashboard }: HomePageProps) {
         </div>
       </section>
 
-      {/* Preserved Documentation and Community Links */}
-      <section className="supporting-section">
-        <NextSteps />
-      </section>
+      {/* Simple Accessible Footer */}
+      <footer className="landing-footer">
+        <div className="footer-inner">
+          <span className="footer-copy">Contra AI — Dialectical Evidence Engine</span>
+          <a href="#dashboard" onClick={(e) => { e.preventDefault(); onEnterDashboard(); }} className="footer-link">
+            Launch Dashboard
+          </a>
+        </div>
+      </footer>
     </div>
+  </div>
   )
 }
