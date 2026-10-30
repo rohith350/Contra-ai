@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.config import settings
 from backend.routes.health import router as health_router
 from backend.routes.investigations import router as investigations_router
+from backend.routes.voice import router as voice_router
 
 # Configure logging
 logging.basicConfig(
@@ -61,6 +62,7 @@ app.add_middleware(
 # Register API routes
 app.include_router(health_router)
 app.include_router(investigations_router)
+app.include_router(voice_router)
 
 
 if __name__ == "__main__":

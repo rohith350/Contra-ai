@@ -1,0 +1,225 @@
+/* ============================================================
+   VoiceAgent.css — Voice Interaction UI for Contra AI
+   Design system: #050505 ground · #0E0E0E panel
+   Mint accent: #3FD6C6
+   ============================================================ */
+
+/* ── Panel wrapper ─────────────────────────────────────────── */
+.voice-agent-panel {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Control row (mic button + status) ─────────────────────── */
+.voice-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.voice-mic-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid #303030;
+  background: #0E0E0E;
+  color: #aaa;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+  outline: none;
+}
+.voice-mic-btn:hover {
+  border-color: #3FD6C6;
+  color: #3FD6C6;
+}
+.voice-mic-btn:focus-visible {
+  outline: 2px solid #3FD6C6;
+  outline-offset: 3px;
+}
+.voice-mic-btn.listening {
+  border-color: #3FD6C6;
+  background: rgba(63, 214, 198, 0.1);
+  color: #3FD6C6;
+  box-shadow: 0 0 18px rgba(63, 214, 198, 0.35);
+  animation: mic-pulse 1.4s ease-in-out infinite;
+}
+.voice-mic-btn.thinking {
+  border-color: #8B8BFF;
+  background: rgba(139, 139, 255, 0.08);
+  color: #8B8BFF;
+  animation: mic-spin 1.8s linear infinite;
+}
+.voice-mic-btn.speaking {
+  border-color: #FFB347;
+  background: rgba(255, 179, 71, 0.08);
+  color: #FFB347;
+  box-shadow: 0 0 14px rgba(255, 179, 71, 0.25);
+}
+.voice-mic-btn.error-state {
+  border-color: #FF6B6B;
+  color: #FF6B6B;
+}
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 18px rgba(63, 214, 198, 0.35); }
+  50%       { box-shadow: 0 0 32px rgba(63, 214, 198, 0.65); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .voice-mic-btn.listening { animation: none; }
+  .voice-mic-btn.thinking  { animation: none; }
+}
+@keyframes mic-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Status label ──────────────────────────────────────────── */
+.voice-status-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.voice-status-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #555;
+  transition: color 0.2s;
+}
+.voice-status-label.active   { color: #3FD6C6; }
+.voice-status-label.thinking { color: #8B8BFF; }
+.voice-status-label.speaking { color: #FFB347; }
+.voice-status-label.error    { color: #FF6B6B; }
+
+.voice-transcript-preview {
+  font-size: 13px;
+  color: #ccc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+.voice-transcript-preview .interim {
+  color: #555;
+  font-style: italic;
+}
+
+/* ── Stop-speaking button ──────────────────────────────────── */
+.voice-stop-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #FFB347;
+  background: transparent;
+  color: #FFB347;
+  font-size: 12px;
+  font-family: 'Geist', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+  outline: none;
+  flex-shrink: 0;
+}
+.voice-stop-btn:hover { background: rgba(255, 179, 71, 0.12); }
+.voice-stop-btn:focus-visible {
+  outline: 2px solid #FFB347;
+  outline-offset: 3px;
+}
+
+/* ── Error banner ──────────────────────────────────────────── */
+.voice-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(255, 107, 107, 0.08);
+  border: 1px solid rgba(255, 107, 107, 0.25);
+  color: #FF6B6B;
+  font-size: 12px;
+  font-family: 'Geist', sans-serif;
+}
+
+/* ── Conversation history ──────────────────────────────────── */
+.voice-conversation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.voice-conversation::-webkit-scrollbar { width: 4px; }
+.voice-conversation::-webkit-scrollbar-track { background: transparent; }
+.voice-conversation::-webkit-scrollbar-thumb { background: #303030; border-radius: 2px; }
+
+.voice-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.voice-turn-role {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #444;
+}
+.voice-turn.user .voice-turn-role  { color: #3FD6C6; }
+.voice-turn.assistant .voice-turn-role { color: #8B8BFF; }
+
+.voice-turn-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #d0d0d0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #0E0E0E;
+  border: 1px solid #1a1a1a;
+}
+.voice-turn.user .voice-turn-text {
+  background: rgba(63, 214, 198, 0.05);
+  border-color: rgba(63, 214, 198, 0.12);
+}
+.voice-turn.assistant .voice-turn-text {
+  background: rgba(139, 139, 255, 0.05);
+  border-color: rgba(139, 139, 255, 0.1);
+}
+
+/* ── Clear button ──────────────────────────────────────────── */
+.voice-clear-btn {
+  align-self: flex-end;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #303030;
+  background: transparent;
+  color: #555;
+  font-size: 11px;
+  font-family: 'Geist', sans-serif;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  outline: none;
+}
+.voice-clear-btn:hover { color: #aaa; border-color: #555; }
+.voice-clear-btn:focus-visible { outline: 2px solid #3FD6C6; outline-offset: 2px; }
+
+/* ── Divider above the voice panel ────────────────────────── */
+.voice-panel-divider {
+  width: 100%;
+  max-width: 640px;
+  margin: 4px auto 0;
+  border: none;
+  border-top: 1px solid #1a1a1a;
+}
+
