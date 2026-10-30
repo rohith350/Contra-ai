@@ -11,7 +11,9 @@ import { EvidenceReceipts } from '../components/EvidenceReceipts'
 import { FalsificationCard } from '../components/FalsificationCard'
 import { SAMPLE_INVESTIGATION_REPORT } from '../services/sample-report'
 import { createInvestigation, subscribeInvestigationEvents } from '../services/api'
+import { useVoiceAgent } from '../hooks/useVoiceAgent'
 import '../styles/DashboardPage.css'
+import '../styles/VoiceAgent.css'
 
 interface DashboardPageProps {
   onNavigateHome: () => void
@@ -280,6 +282,12 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
 
   const [isAISpeaking, setIsAISpeaking] = useState(false)
 
+  // ── Voice Agent (Nemotron-powered real-time voice conversation) ───────────
+  const voice = useVoiceAgent()
+
+  // Sync legacy isVoiceListening flag from the ChatGPTComposer mic with voice agent state
+  // (the composer's own STT populates the hypothesis field; the voice agent is for freeform chat)
+
   const handleToggleAISpeech = () => {
     if (!('speechSynthesis' in window)) return
 
@@ -310,9 +318,12 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
     window.speechSynthesis.speak(utterance)
   }
 
-  // Derive genuine sphere animation state from workspace
+  // Derive genuine sphere animation state from workspace and voice agent
   const getSphereState = (): SphereAnimationState => {
     if (isAISpeaking) return 'speaking'
+    if (voice.agentState === 'speaking') return 'speaking'
+    if (voice.agentState === 'thinking') return 'researching'
+    if (voice.agentState === 'listening') return 'listening'
     if (workspaceState === 'researching') return 'researching'
     if (workspaceState === 'completed') return 'report-ready'
     if (workspaceState === 'error') return 'error'
@@ -426,11 +437,11 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
             <div className="workspace-state-badge">
               <span className="state-pulse" aria-hidden="true" />
               <span className="state-label">
-                {workspaceState === 'welcome' && (isVoiceListening ? 'VOICE SENSORS ACTIVE • LISTENING' : 'READY • ENTER HYPOTHESIS')}
-                {workspaceState === 'researching' && researchStage === 'preparing' && 'PREPARING • VECTOR DECOMPOSITION'}
-                {workspaceState === 'researching' && researchStage === 'researching' && 'RESEARCHING • RETRIEVING SOURCES & CITATIONS'}
-                {workspaceState === 'researching' && researchStage === 'analyzing' && 'ANALYZING • MODEL PROCESSING EVIDENCE'}
-                {workspaceState === 'completed' && 'REPORT READY • EVIDENCE DOSSIER'}
+                {workspaceState === 'welcome' && (isVoiceListening ? 'VOICE SENSORS ACTIVE â€¢ LISTENING' : 'READY â€¢ ENTER HYPOTHESIS')}
+                {workspaceState === 'researching' && researchStage === 'preparing' && 'PREPARING â€¢ VECTOR DECOMPOSITION'}
+                {workspaceState === 'researching' && researchStage === 'researching' && 'RESEARCHING â€¢ RETRIEVING SOURCES & CITATIONS'}
+                {workspaceState === 'researching' && researchStage === 'analyzing' && 'ANALYZING â€¢ MODEL PROCESSING EVIDENCE'}
+                {workspaceState === 'completed' && 'REPORT READY â€¢ EVIDENCE DOSSIER'}
                 {workspaceState === 'error' && 'INVESTIGATION HALTED'}
               </span>
             </div>
@@ -455,14 +466,18 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
                   size={370}
                   label={
                     isAISpeaking
-                      ? 'AI VOICE SYNTHESIS • ACTIVE'
-                      : isVoiceListening
-                        ? 'VOICE CAPTURE • ACTIVE'
-                        : 'NEURAL CORE • READY'
+                      ? 'AI VOICE SYNTHESIS â€¢ ACTIVE'
+                      : voice.agentState === 'speaking'
+                        ? 'CONTRA AI • SPEAKING'
+                        : voice.agentState === 'thinking'
+                          ? 'NEMOTRON • PROCESSING'
+                          : (voice.agentState === 'listening' || isVoiceListening)
+                            ? 'VOICE CAPTURE • ACTIVE'
+                            : 'NEURAL CORE • READY'
                   }
                   interactive={true}
-                  isListening={isVoiceListening}
-                  isSpeaking={isAISpeaking}
+                  isListening={isVoiceListening || voice.agentState === 'listening'}
+                  isSpeaking={isAISpeaking || voice.agentState === 'speaking'}
                   className="welcome-sphere-hero"
                 />
               </div>
@@ -501,6 +516,137 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
                   placeholder="Enter a hypothesis to investigate..."
                 />
               </div>
+
+              {/* Voice Agent Panel - Nemotron-powered real-time voice conversation */}
+              {voice.isSpeechAvailable && (
+                <>
+                  <hr className="voice-panel-divider" aria-hidden="true" />
+                  <section
+                    className="voice-agent-panel"
+                    aria-label="Voice conversation with Contra AI"
+                  >
+                    <div className="voice-controls">
+                      <button
+                        type="button"
+                        className={[
+                          'voice-mic-btn',
+                          voice.agentState === 'listening' ? 'listening'   : '',
+                          voice.agentState === 'thinking'  ? 'thinking'    : '',
+                          voice.agentState === 'speaking'  ? 'speaking'    : '',
+                          voice.agentState === 'error'     ? 'error-state' : '',
+                        ].join(' ').trim()}
+                        onClick={() => {
+                          if (voice.agentState === 'listening') {
+                            voice.stopListening()
+                          } else if (voice.agentState === 'speaking') {
+                            voice.stopSpeaking()
+                          } else if (voice.agentState === 'idle' || voice.agentState === 'error') {
+                            voice.startListening()
+                          }
+                        }}
+                        aria-label={
+                          voice.agentState === 'listening'
+                            ? 'Stop listening'
+                            : voice.agentState === 'speaking'
+                              ? 'Stop speaking'
+                              : 'Start voice conversation'
+                        }
+                        disabled={voice.agentState === 'thinking'}
+                        aria-disabled={voice.agentState === 'thinking'}
+                      >
+                        {voice.agentState === 'thinking' ? (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                            <path d="M12 2a10 10 0 0 1 10 10" />
+                          </svg>
+                        ) : voice.agentState === 'speaking' ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                            <rect x="6" y="6" width="12" height="12" rx="2" />
+                          </svg>
+                        ) : voice.agentState === 'listening' ? (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                            <line x1="1" y1="12" x2="3" y2="12" />
+                            <line x1="5" y1="8" x2="5" y2="16" />
+                            <line x1="9" y1="5" x2="9" y2="19" />
+                            <line x1="13" y1="8" x2="13" y2="16" />
+                            <line x1="17" y1="10" x2="17" y2="14" />
+                            <line x1="21" y1="11" x2="21" y2="13" />
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                            <line x1="12" y1="19" x2="12" y2="23" />
+                            <line x1="8" y1="23" x2="16" y2="23" />
+                          </svg>
+                        )}
+                      </button>
+
+                      <div className="voice-status-group">
+                        <span
+                          className={[
+                            'voice-status-label',
+                            voice.agentState === 'listening' ? 'active'   : '',
+                            voice.agentState === 'thinking'  ? 'thinking' : '',
+                            voice.agentState === 'speaking'  ? 'speaking' : '',
+                            voice.agentState === 'error'     ? 'error'    : '',
+                          ].join(' ').trim()}
+                          aria-live="polite"
+                          aria-atomic="true"
+                        >
+                          {voice.agentState === 'idle'      && 'VOICE AI \u2022 TAP TO SPEAK'}
+                          {voice.agentState === 'listening' && 'LISTENING \u2022 SPEAK NOW'}
+                          {voice.agentState === 'thinking'  && 'NEMOTRON \u2022 THINKING'}
+                          {voice.agentState === 'speaking'  && 'CONTRA AI \u2022 SPEAKING'}
+                          {voice.agentState === 'error'     && 'ERROR \u2022 TAP TO RETRY'}
+                        </span>
+                        {(voice.transcript || voice.interimTranscript) && (
+                          <p className="voice-transcript-preview" aria-live="polite">
+                            {voice.transcript && <span>{voice.transcript}</span>}
+                            {voice.interimTranscript && (
+                              <span className="interim"> {voice.interimTranscript}</span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {voice.errorMessage && (
+                      <div className="voice-error-banner" role="alert">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        {voice.errorMessage}
+                      </div>
+                    )}
+
+                    {voice.conversation.length > 0 && (
+                      <>
+                        <div className="voice-conversation" aria-label="Conversation history" aria-live="polite">
+                          {voice.conversation.map((turn, idx) => (
+                            <div key={idx} className={`voice-turn ${turn.role}`}>
+                              <span className="voice-turn-role">
+                                {turn.role === 'user' ? 'YOU' : 'CONTRA AI'}
+                              </span>
+                              <p className="voice-turn-text">{turn.content}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          className="voice-clear-btn"
+                          onClick={voice.clearConversation}
+                          aria-label="Clear voice conversation history"
+                        >
+                          Clear conversation
+                        </button>
+                      </>
+                    )}
+                  </section>
+                </>
+              )}
             </div>
           )}
 
@@ -573,7 +719,7 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
                       <ContraAISphere
                         state="researching"
                         size={320}
-                        label="EVIDENCE RETRIEVAL • ACTIVE"
+                        label="EVIDENCE RETRIEVAL â€¢ ACTIVE"
                         interactive={false}
                         className="active-sphere"
                       />
