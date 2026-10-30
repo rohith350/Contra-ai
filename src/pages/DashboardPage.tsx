@@ -285,6 +285,8 @@ export function DashboardPage({ onNavigateHome }: DashboardPageProps) {
   // ── Voice Agent (Nemotron-powered real-time voice conversation) ───────────
   const voice = useVoiceAgent()
 
+
+
   // Sync legacy isVoiceListening flag from the ChatGPTComposer mic with voice agent state
   // (the composer's own STT populates the hypothesis field; the voice agent is for freeform chat)
 

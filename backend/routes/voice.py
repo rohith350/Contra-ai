@@ -136,7 +136,8 @@ async def voice_chat(payload: VoiceChatRequest):
         "model": settings.nebius_model_id,
         "messages": messages,
         "temperature": 0.6,
-        "max_tokens": 512,
+        "max_tokens": 256,
+        "chat_template_kwargs": {"thinking": False},
     }
 
     start_time = time.time()

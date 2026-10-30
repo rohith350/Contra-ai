@@ -2,17 +2,12 @@
  * useVoiceAgent — end-to-end voice interaction hook for Contra AI.
  *
  * Flow:
- *   startListening() → browser SpeechRecognition (STT)
- *                    → transcript appears
- *   sendToNemotron() → POST /api/voice/chat
- *                    → response text returned
- *   speak()          → window.speechSynthesis (TTS)
- *                    → sphere enters 'speaking' state
- *
- * The sphere's own microphone / audio-analyser is driven by the
- * `isListening` flag already wired in DashboardPage — this hook only
- * manages state, network, and TTS.  Audio capture inside the sphere
- * is handled by ContraAISphere.tsx itself.
+ *   startListening() -> browser SpeechRecognition (STT)
+ *                    -> transcript appears live
+ *   sendToNemotron() -> POST /api/voice/chat
+ *                    -> clean response returned in ~2s (no thinking delay)
+ *   speak()          -> window.speechSynthesis (TTS)
+ *                    -> sphere enters 'speaking' state
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react'
@@ -74,8 +69,6 @@ interface SpeechRecognitionInstance extends EventTarget {
   onresult: ((e: SpeechRecognitionEvent) => void) | null
 }
 type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance
-// Note: SpeechRecognition and webkitSpeechRecognition are accessed via window at runtime;
-// declare stubs are omitted to avoid unused-vars lint warnings.
 
 function getSpeechRecognition(): SpeechRecognitionConstructor | null {
   if (typeof window === 'undefined') return null
@@ -104,7 +97,7 @@ async function callVoiceChat(payload: VoiceChatPayload): Promise<VoiceChatResult
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(35_000),
+    signal: AbortSignal.timeout(20_000),
   })
   if (!res.ok) {
     const text = await res.text().catch(() => '')
@@ -126,9 +119,9 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const pendingFinalRef = useRef('')
+  const latestHeardRef = useRef('')
   const isMountedRef = useRef(true)
 
-  // Detect reduced-motion preference once
   const prefersReducedMotion =
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -139,7 +132,6 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
     isMountedRef.current = true
     return () => {
       isMountedRef.current = false
-      // Cleanup on unmount
       recognitionRef.current?.abort()
       window.speechSynthesis?.cancel()
     }
@@ -187,25 +179,29 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
 
   const sendToNemotron = useCallback(
     async (userText: string) => {
-      if (!userText.trim()) return
+      const clean = userText.trim()
+      if (!clean) {
+        if (isMountedRef.current) setAgentState('idle')
+        return
+      }
 
       if (isMountedRef.current) {
-        setTranscript(userText)
+        setTranscript(clean)
         setInterimTranscript('')
         setAgentState('thinking')
         setErrorMessage(null)
         setConversation((prev) => [
           ...prev,
-          { role: 'user', content: userText, timestamp: Date.now() },
+          { role: 'user', content: clean, timestamp: Date.now() },
         ])
       }
 
       try {
         const historyPayload = conversation
-          .slice(-10)
+          .slice(-6)
           .map(({ role, content }) => ({ role, content }))
 
-        const result = await callVoiceChat({ message: userText, history: historyPayload })
+        const result = await callVoiceChat({ message: clean, history: historyPayload })
 
         if (!isMountedRef.current) return
 
@@ -231,13 +227,16 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
   const startListening = useCallback(() => {
     const SpeechRecognitionCtor = getSpeechRecognition()
     if (!SpeechRecognitionCtor) {
-      setErrorMessage('Speech recognition is not supported in this browser.')
+      setErrorMessage('Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.')
       setAgentState('error')
       return
     }
 
-    // Stop any ongoing recognition first
-    recognitionRef.current?.abort()
+    try {
+      recognitionRef.current?.abort()
+    } catch {
+      // ignore
+    }
     window.speechSynthesis?.cancel()
 
     const recognition = new SpeechRecognitionCtor()
@@ -248,6 +247,7 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
     recognitionRef.current = recognition
 
     pendingFinalRef.current = ''
+    latestHeardRef.current = ''
 
     recognition.onstart = () => {
       if (isMountedRef.current) {
@@ -263,16 +263,22 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
       let finalText = ''
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const result = e.results[i]
-        if (result.isFinal) {
-          finalText += result[0].transcript
-        } else {
-          interim += result[0].transcript
+        if (result && result[0]) {
+          if (result.isFinal) {
+            finalText += result[0].transcript
+          } else {
+            interim += result[0].transcript
+          }
         }
       }
+
       if (isMountedRef.current) {
         if (finalText) {
           pendingFinalRef.current += finalText
+          latestHeardRef.current = pendingFinalRef.current
           setTranscript(pendingFinalRef.current)
+        } else if (interim) {
+          latestHeardRef.current = interim
         }
         setInterimTranscript(interim)
       }
@@ -280,7 +286,8 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
 
     recognition.onend = () => {
       if (!isMountedRef.current) return
-      const finalUtterance = pendingFinalRef.current.trim()
+      // Use pending final or latest heard transcript so short words are never lost
+      const finalUtterance = (pendingFinalRef.current || latestHeardRef.current).trim()
       if (finalUtterance) {
         void sendToNemotron(finalUtterance)
       } else {
@@ -291,25 +298,34 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
     recognition.onerror = (e) => {
       if (!isMountedRef.current) return
       if (e.error === 'no-speech') {
-        // User was silent — go back to idle quietly
         setAgentState('idle')
       } else if (e.error === 'not-allowed') {
-        setErrorMessage('Microphone access was denied. Please allow microphone permissions.')
+        setErrorMessage('Microphone access was denied. Please allow microphone permissions in browser settings.')
         setAgentState('error')
       } else {
-        setErrorMessage(`Speech recognition error: ${e.error}`)
+        setErrorMessage(`Microphone error: ${e.error}`)
         setAgentState('error')
       }
     }
 
-    recognition.start()
+    try {
+      recognition.start()
+    } catch (err) {
+      console.warn('Recognition start exception:', err)
+      setErrorMessage('Could not activate microphone. Tap to retry.')
+      setAgentState('error')
+    }
   }, [sendToNemotron])
 
   const stopListening = useCallback(() => {
-    recognitionRef.current?.stop()
+    try {
+      recognitionRef.current?.stop()
+    } catch {
+      // ignore
+    }
     recognitionRef.current = null
     if (isMountedRef.current) {
-      const finalUtterance = pendingFinalRef.current.trim()
+      const finalUtterance = (pendingFinalRef.current || latestHeardRef.current).trim()
       if (!finalUtterance) setAgentState('idle')
     }
   }, [])
@@ -318,7 +334,11 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
 
   const sendManual = useCallback(
     async (text: string) => {
-      recognitionRef.current?.abort()
+      try {
+        recognitionRef.current?.abort()
+      } catch {
+        // ignore
+      }
       await sendToNemotron(text)
     },
     [sendToNemotron],
