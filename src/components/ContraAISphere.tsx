@@ -484,6 +484,10 @@ export function ContraAISphere({
     let currentPulseScale = STATE_CONFIGS.idle.pulseScale
     let currentRingSpeed = STATE_CONFIGS.idle.ringSpeed
 
+    let wavePhase = 0
+    let pulsePhase = 0
+    let innerPulsePhase = 0
+
     const clock = new THREE.Clock()
     let animationFrameId: number
 
@@ -573,9 +577,9 @@ export function ContraAISphere({
         const gatedBass = rawBass < 0.05 ? 0 : (rawBass - 0.05) / 0.95
         const gatedTreble = rawTreble < 0.05 ? 0 : (rawTreble - 0.05) / 0.95
 
-        // Asymmetric attack/release smoothing (fast gentle attack, smooth gradual release)
-        const attackCoeff = 0.18
-        const releaseCoeff = 0.06
+        // Asymmetric attack/release smoothing (buttery gentle attack, smooth gradual release)
+        const attackCoeff = 0.12
+        const releaseCoeff = 0.04
 
         const volCoeff = gatedAvg > audioDataRef.current.smoothedVolume ? attackCoeff : releaseCoeff
         const bassCoeff = gatedBass > audioDataRef.current.bassVolume ? attackCoeff : releaseCoeff
@@ -586,25 +590,30 @@ export function ContraAISphere({
         audioDataRef.current.trebleVolume += (gatedTreble - audioDataRef.current.trebleVolume) * trebleCoeff
 
         // Clamp extreme peaks
-        audioVolume = Math.min(0.85, Math.max(0, audioDataRef.current.smoothedVolume))
-        bassVolume = Math.min(0.85, Math.max(0, audioDataRef.current.bassVolume))
-        trebleVolume = Math.min(0.85, Math.max(0, audioDataRef.current.trebleVolume))
+        audioVolume = Math.min(0.4, Math.max(0, audioDataRef.current.smoothedVolume))
+        bassVolume = Math.min(0.4, Math.max(0, audioDataRef.current.bassVolume))
+        trebleVolume = Math.min(0.4, Math.max(0, audioDataRef.current.trebleVolume))
       } else if (isSpeakingRef.current) {
-        // Expressive speaking cadence matching human speech syllables and rhythms
-        const speechEnvelope = 0.5 + 0.5 * Math.sin(time * 3.8)
-        const voiceCadence = Math.max(0, Math.sin(time * 8.2) * 0.4 + Math.sin(time * 14.5) * 0.25)
-        audioVolume = 0.04 + speechEnvelope * voiceCadence * 0.25
-        bassVolume = audioVolume * 0.75
-        trebleVolume = audioVolume * 0.95
+        // Expressive speaking cadence matching human speech syllables without jitter
+        const speechEnvelope = 0.5 + 0.5 * Math.sin(time * 2.2)
+        const voiceCadence = Math.max(0, Math.sin(time * 3.8) * 0.35 + Math.sin(time * 1.8) * 0.2)
+        audioVolume = 0.02 + speechEnvelope * voiceCadence * 0.15
+        bassVolume = audioVolume * 0.6
+        trebleVolume = audioVolume * 0.8
       } else if (audioDataRef.current.smoothedVolume > 0.001) {
         // Smoothly settle back to 0 when not listening or before warmup
-        audioDataRef.current.smoothedVolume *= 0.88
-        audioDataRef.current.bassVolume *= 0.88
-        audioDataRef.current.trebleVolume *= 0.88
+        audioDataRef.current.smoothedVolume *= 0.92
+        audioDataRef.current.bassVolume *= 0.92
+        audioDataRef.current.trebleVolume *= 0.92
       }
 
-      // Gentle, bounded breathing pulse (maximum 1-2% additional variation)
-      const breathingPulse = 1.0 + Math.sin(time * currentPulseSpeed) * currentPulseScale + (audioVolume * 0.015 + bassVolume * 0.008)
+      // Continuous phase accumulation for smooth, jitter-free oscillations
+      wavePhase += (currentWaveSpeed + trebleVolume * 0.2) * delta * motionMult
+      pulsePhase += currentPulseSpeed * delta * motionMult
+      innerPulsePhase += (currentPulseSpeed * 1.5) * delta * motionMult
+
+      // Gentle, bounded breathing pulse (continuous phase, no jumps)
+      const breathingPulse = 1.0 + Math.sin(pulsePhase) * currentPulseScale + (audioVolume * 0.01 + bassVolume * 0.005)
 
       // Pointer-responsive particle displacement
       const pointerInfluenceX = pointer.x * 0.4
@@ -621,7 +630,7 @@ export function ContraAISphere({
         const bz = basePositions[i3 + 2]
 
         // Subtle, smooth wave modulation (never high-frequency shake)
-        const wave = Math.sin(time * (currentWaveSpeed + trebleVolume * 0.3) + phases[i] * 2.2) * (0.038 + audioVolume * 0.008) * motionMult
+        const wave = Math.sin(wavePhase + phases[i] * 2.2) * (0.035 + audioVolume * 0.008) * motionMult
 
         // Calculate click ripples travelling across sphere surface
         let rippleOffset = 0
@@ -662,7 +671,7 @@ export function ContraAISphere({
       colAttr.needsUpdate = true
 
       // Inner core pulse with gentle, controlled voice reactive bass expansion (bounded)
-      const innerScale = 1.0 + Math.sin(time * currentPulseSpeed * 1.6) * (currentPulseScale * 1.8) + (bassVolume * 0.025 + audioVolume * 0.012)
+      const innerScale = 1.0 + Math.sin(innerPulsePhase) * (currentPulseScale * 1.6) + (bassVolume * 0.02 + audioVolume * 0.01)
       innerPoints.scale.set(innerScale, innerScale, innerScale)
 
       const innerColAttr = innerGeometry.attributes.color as THREE.BufferAttribute

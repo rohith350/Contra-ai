@@ -3,11 +3,11 @@
  *
  * Flow:
  *   startListening() -> browser SpeechRecognition (STT)
- *                    -> transcript appears live
- *   sendToNemotron() -> POST /api/voice/chat
- *                    -> clean response returned in ~2s (no thinking delay)
+ *                    -> recognized speech updates chatbox in real time for review/editing
+ *   sendManual()     -> POST /api/voice/chat (NVIDIA Nemotron via Nebius)
+ *                    -> response returned & added to conversation context
  *   speak()          -> window.speechSynthesis (TTS)
- *                    -> sphere enters 'speaking' state
+ *                    -> neural sphere enters 'speaking' state
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react'
@@ -30,8 +30,9 @@ export interface UseVoiceAgentReturn {
   conversation: VoiceTurn[]
   errorMessage: string | null
   isSpeechAvailable: boolean
-  startListening: () => void
+  startListening: (onUpdate?: (transcript: string, isFinal: boolean) => void) => void
   stopListening: () => void
+  speak: (text: string, onDone?: () => void) => void
   stopSpeaking: () => void
   clearConversation: () => void
   sendManual: (text: string) => Promise<void>
@@ -121,6 +122,7 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
   const pendingFinalRef = useRef('')
   const latestHeardRef = useRef('')
   const isMountedRef = useRef(true)
+  const onTranscriptCallbackRef = useRef<((text: string, isFinal: boolean) => void) | null>(null)
 
   const prefersReducedMotion =
     typeof window !== 'undefined' &&
@@ -224,98 +226,107 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
 
   // ── STT ────────────────────────────────────────────────────────────────────
 
-  const startListening = useCallback(() => {
-    const SpeechRecognitionCtor = getSpeechRecognition()
-    if (!SpeechRecognitionCtor) {
-      setErrorMessage('Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.')
-      setAgentState('error')
-      return
-    }
-
-    try {
-      recognitionRef.current?.abort()
-    } catch {
-      // ignore
-    }
-    window.speechSynthesis?.cancel()
-
-    const recognition = new SpeechRecognitionCtor()
-    recognition.continuous = false
-    recognition.interimResults = true
-    recognition.lang = 'en-US'
-    recognition.maxAlternatives = 1
-    recognitionRef.current = recognition
-
-    pendingFinalRef.current = ''
-    latestHeardRef.current = ''
-
-    recognition.onstart = () => {
-      if (isMountedRef.current) {
-        setAgentState('listening')
-        setTranscript('')
-        setInterimTranscript('')
-        setErrorMessage(null)
+  const startListening = useCallback(
+    (onUpdate?: (transcript: string, isFinal: boolean) => void) => {
+      const SpeechRecognitionCtor = getSpeechRecognition()
+      if (!SpeechRecognitionCtor) {
+        setErrorMessage('Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.')
+        setAgentState('error')
+        return
       }
-    }
 
-    recognition.onresult = (e: SpeechRecognitionEvent) => {
-      let interim = ''
-      let finalText = ''
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const result = e.results[i]
-        if (result && result[0]) {
-          if (result.isFinal) {
-            finalText += result[0].transcript
-          } else {
-            interim += result[0].transcript
+      try {
+        recognitionRef.current?.abort()
+      } catch {
+        // ignore
+      }
+      window.speechSynthesis?.cancel()
+
+      if (onUpdate) {
+        onTranscriptCallbackRef.current = onUpdate
+      }
+
+      const recognition = new SpeechRecognitionCtor()
+      recognition.continuous = true
+      recognition.interimResults = true
+      recognition.lang = 'en-US'
+      recognition.maxAlternatives = 1
+      recognitionRef.current = recognition
+
+      pendingFinalRef.current = ''
+      latestHeardRef.current = ''
+
+      recognition.onstart = () => {
+        if (isMountedRef.current) {
+          setAgentState('listening')
+          setTranscript('')
+          setInterimTranscript('')
+          setErrorMessage(null)
+        }
+      }
+
+      recognition.onresult = (e: SpeechRecognitionEvent) => {
+        let interim = ''
+        let currentFinal = ''
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const result = e.results[i]
+          if (result && result[0]) {
+            if (result.isFinal) {
+              currentFinal += result[0].transcript
+            } else {
+              interim += result[0].transcript
+            }
           }
         }
-      }
 
-      if (isMountedRef.current) {
-        if (finalText) {
-          pendingFinalRef.current += finalText
-          latestHeardRef.current = pendingFinalRef.current
-          setTranscript(pendingFinalRef.current)
-        } else if (interim) {
-          latestHeardRef.current = interim
+        if (isMountedRef.current) {
+          if (currentFinal) {
+            const separator = pendingFinalRef.current ? ' ' : ''
+            pendingFinalRef.current += separator + currentFinal.trim()
+            latestHeardRef.current = pendingFinalRef.current
+            setTranscript(pendingFinalRef.current)
+            onTranscriptCallbackRef.current?.(pendingFinalRef.current, true)
+          } else if (interim) {
+            latestHeardRef.current = interim
+            const combined = pendingFinalRef.current
+              ? `${pendingFinalRef.current} ${interim}`
+              : interim
+            onTranscriptCallbackRef.current?.(combined, false)
+          }
+          setInterimTranscript(interim)
         }
-        setInterimTranscript(interim)
       }
-    }
 
-    recognition.onend = () => {
-      if (!isMountedRef.current) return
-      // Use pending final or latest heard transcript so short words are never lost
-      const finalUtterance = (pendingFinalRef.current || latestHeardRef.current).trim()
-      if (finalUtterance) {
-        void sendToNemotron(finalUtterance)
-      } else {
+      recognition.onend = () => {
+        if (!isMountedRef.current) return
+        // Do not auto-submit on end. Transcribed speech populates the input field
+        // so the user can review, edit, or clear before sending.
         setAgentState('idle')
       }
-    }
 
-    recognition.onerror = (e) => {
-      if (!isMountedRef.current) return
-      if (e.error === 'no-speech') {
-        setAgentState('idle')
-      } else if (e.error === 'not-allowed') {
-        setErrorMessage('Microphone access was denied. Please allow microphone permissions in browser settings.')
-        setAgentState('error')
-      } else {
-        setErrorMessage(`Microphone error: ${e.error}`)
+      recognition.onerror = (e) => {
+        if (!isMountedRef.current) return
+        if (e.error === 'no-speech') {
+          setAgentState('idle')
+        } else if (e.error === 'not-allowed') {
+          setErrorMessage('Microphone access was denied. Please allow microphone permissions in browser settings.')
+          setAgentState('error')
+        } else {
+          setErrorMessage(`Microphone error: ${e.error}`)
+          setAgentState('error')
+        }
+      }
+
+      try {
+        recognition.start()
+      } catch (err) {
+        console.warn('Recognition start exception:', err)
+        setErrorMessage('Could not activate microphone. Tap to retry.')
         setAgentState('error')
       }
-    }
-
-    try {
-      recognition.start()
-    } catch (err) {
-      console.warn('Recognition start exception:', err)
-      setErrorMessage('Could not activate microphone. Tap to retry.')
-      setAgentState('error')
-    }
-  }, [sendToNemotron])
+    },
+    [],
+  )
 
   const stopListening = useCallback(() => {
     try {
@@ -325,12 +336,11 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
     }
     recognitionRef.current = null
     if (isMountedRef.current) {
-      const finalUtterance = (pendingFinalRef.current || latestHeardRef.current).trim()
-      if (!finalUtterance) setAgentState('idle')
+      setAgentState('idle')
     }
   }, [])
 
-  // ── Manual send (for typed messages) ─────────────────────────────────────
+  // ── Manual send (for typed or reviewed speech messages) ───────────────────
 
   const sendManual = useCallback(
     async (text: string) => {
@@ -363,6 +373,7 @@ export function useVoiceAgent(): UseVoiceAgentReturn {
     isSpeechAvailable,
     startListening,
     stopListening,
+    speak,
     stopSpeaking,
     clearConversation,
     sendManual,

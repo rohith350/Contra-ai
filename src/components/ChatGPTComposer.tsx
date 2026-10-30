@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useId, type FormEvent, type ChangeEvent, type KeyboardEvent } from 'react'
+import type { VoiceAgentState } from '../hooks/useVoiceAgent'
 import '../styles/ChatGPTComposer.css'
 
 export interface AttachedSource {
@@ -9,50 +10,34 @@ export interface AttachedSource {
   contentSnippet?: string
 }
 
+export type ComposerMode = 'auto' | 'chat' | 'investigate'
+
 interface ChatGPTComposerProps {
   hypothesis: string
   onHypothesisChange: (value: string) => void
-  onInvestigate: (hypothesis: string, sources: AttachedSource[]) => void
+  onSubmitMessage: (text: string, sources: AttachedSource[], mode: ComposerMode) => void
   isResearching: boolean
-  isListening: boolean
-  onListeningChange: (listening: boolean) => void
+  voiceState: VoiceAgentState
+  onToggleVoice: () => void
+  onStopSpeaking?: () => void
+  voiceErrorMessage?: string | null
+  mode: ComposerMode
+  onModeChange: (mode: ComposerMode) => void
   placeholder?: string
 }
-
-// Global declaration for SpeechRecognition in browsers
-interface SpeechRecognitionEventLike {
-  results: {
-    [index: number]: {
-      [index: number]: {
-        transcript: string
-      }
-    }
-  }
-}
-
-interface SpeechRecognitionInstanceLike {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  start: () => void
-  stop: () => void
-  abort: () => void
-  onstart: (() => void) | null
-  onend: (() => void) | null
-  onerror: ((e: { error: string }) => void) | null
-  onresult: ((e: SpeechRecognitionEventLike) => void) | null
-}
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionInstanceLike
 
 export function ChatGPTComposer({
   hypothesis,
   onHypothesisChange,
-  onInvestigate,
+  onSubmitMessage,
   isResearching,
-  isListening,
-  onListeningChange,
-  placeholder = 'Enter a hypothesis to investigate...',
+  voiceState,
+  onToggleVoice,
+  onStopSpeaking,
+  voiceErrorMessage,
+  mode,
+  onModeChange,
+  placeholder = 'Enter a hypothesis to investigate or ask a question...',
 }: ChatGPTComposerProps) {
   const [sources, setSources] = useState<AttachedSource[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
@@ -62,19 +47,16 @@ export function ChatGPTComposer({
   const [pasteModalOpen, setPasteModalOpen] = useState(false)
   const [pastedTitle, setPastedTitle] = useState('')
   const [pastedContent, setPastedContent] = useState('')
-  const [speechError, setSpeechError] = useState<string | null>(null)
-  const [isSpeechAvailable] = useState(() => {
-    if (typeof window === 'undefined') return false
-    const SpeechRecognition =
-      (window as unknown as { SpeechRecognition?: SpeechRecognitionConstructor }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionConstructor }).webkitSpeechRecognition
-    return Boolean(SpeechRecognition)
-  })
+  const [localAlert, setLocalAlert] = useState<string | null>(null)
+
+  const isListening = voiceState === 'listening'
+  const isThinking = voiceState === 'thinking' || isResearching
+  const isSpeaking = voiceState === 'speaking'
+  const isError = voiceState === 'error'
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
-  const speechRecognitionRef = useRef<SpeechRecognitionInstanceLike | null>(null)
   const inputId = useId()
 
   // Auto-resize textarea as content grows
@@ -100,92 +82,6 @@ export function ChatGPTComposer({
     }
   }, [menuOpen])
 
-  // Clean up speech recognition on unmount
-  useEffect(() => {
-    return () => {
-      if (speechRecognitionRef.current) {
-        try {
-          speechRecognitionRef.current.abort()
-        } catch {
-          // ignore cleanup abort error
-        }
-      }
-    }
-  }, [])
-
-  // Voice Input Handlers
-  const toggleVoiceRecording = () => {
-    if (isListening) {
-      // Stop recording
-      if (speechRecognitionRef.current) {
-        try {
-          speechRecognitionRef.current.stop()
-        } catch {
-          // ignore stop error
-        }
-      }
-      onListeningChange(false)
-      return
-    }
-
-    // Start recording
-    const SpeechRecognition =
-      (window as unknown as { SpeechRecognition?: SpeechRecognitionConstructor }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionConstructor }).webkitSpeechRecognition
-
-    if (!SpeechRecognition) {
-      setSpeechError('Speech recognition is not supported in this browser. Please type your claim.')
-      setTimeout(() => setSpeechError(null), 4000)
-      return
-    }
-
-    try {
-      setSpeechError(null)
-      const recognition = new SpeechRecognition()
-      recognition.continuous = false
-      recognition.interimResults = true
-      recognition.lang = 'en-US'
-
-      recognition.onstart = () => {
-        onListeningChange(true)
-      }
-
-      recognition.onend = () => {
-        onListeningChange(false)
-      }
-
-      recognition.onerror = (e) => {
-        onListeningChange(false)
-        if (e.error === 'not-allowed') {
-          setSpeechError('Microphone permission denied. Please allow microphone access in your browser settings.')
-        } else if (e.error === 'no-speech') {
-          setSpeechError('No speech detected. Please try speaking again.')
-        } else {
-          setSpeechError(`Voice capture error: ${e.error}`)
-        }
-        setTimeout(() => setSpeechError(null), 4500)
-      }
-
-      recognition.onresult = (e: SpeechRecognitionEventLike) => {
-        let transcript = ''
-        for (let i = 0; i < Object.keys(e.results).length; i++) {
-          transcript += e.results[i][0].transcript
-        }
-        if (transcript.trim()) {
-          onHypothesisChange(transcript)
-        }
-      }
-
-      speechRecognitionRef.current = recognition
-      recognition.start()
-    } catch (err) {
-      console.warn('Voice capture initialization error:', err)
-      onListeningChange(false)
-      setSpeechError('Failed to initialize microphone access.')
-      setTimeout(() => setSpeechError(null), 4000)
-    }
-  }
-
   // File Upload Handlers (PDF, TXT, MD, max 10MB)
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -198,14 +94,14 @@ export function ChatGPTComposer({
     Array.from(files).forEach((file) => {
       const ext = '.' + file.name.split('.').pop()?.toLowerCase()
       if (!allowedExtensions.includes(ext)) {
-        setSpeechError(`Unsupported file format "${file.name}". Please use PDF, TXT, or MD documents.`)
-        setTimeout(() => setSpeechError(null), 4000)
+        setLocalAlert(`Unsupported file format "${file.name}". Please use PDF, TXT, or MD documents.`)
+        setTimeout(() => setLocalAlert(null), 4000)
         return
       }
 
       if (file.size > maxSize) {
-        setSpeechError(`File "${file.name}" exceeds 10MB limit.`)
-        setTimeout(() => setSpeechError(null), 4000)
+        setLocalAlert(`File "${file.name}" exceeds 10MB limit.`)
+        setTimeout(() => setLocalAlert(null), 4000)
         return
       }
 
@@ -278,19 +174,35 @@ export function ChatGPTComposer({
     setSources((prev) => prev.filter((s) => s.id !== id))
   }
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (e?: FormEvent) => {
+    if (e) e.preventDefault()
     const trimmed = hypothesis.trim()
-    if (!trimmed || isResearching) return
-    onInvestigate(trimmed, sources)
+    if (!trimmed || isThinking) return
+
+    // If currently listening, stop voice capture
+    if (isListening) {
+      onToggleVoice()
+    }
+
+    onSubmitMessage(trimmed, sources, mode)
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSubmit(e)
+      handleSubmit()
     }
   }
+
+  const handleMicClick = () => {
+    if (isSpeaking && onStopSpeaking) {
+      onStopSpeaking()
+      return
+    }
+    onToggleVoice()
+  }
+
+  const alertMessage = localAlert || voiceErrorMessage
 
   return (
     <div className="chatgpt-composer-root">
@@ -306,15 +218,67 @@ export function ChatGPTComposer({
         aria-hidden="true"
       />
 
+      {/* Mode Selector and Feedback Header */}
+      <div className="composer-header-bar">
+        <div className="composer-mode-selector" role="radiogroup" aria-label="Investigation routing mode">
+          <button
+            type="button"
+            className={`mode-pill ${mode === 'auto' ? 'active' : ''}`}
+            onClick={() => onModeChange('auto')}
+            title="Auto: Automatically routes greetings & questions to chat, hypotheses to investigation"
+            aria-checked={mode === 'auto'}
+            role="radio"
+          >
+            <span className="mode-indicator" />
+            <span>Auto</span>
+          </button>
+          <button
+            type="button"
+            className={`mode-pill ${mode === 'chat' ? 'active' : ''}`}
+            onClick={() => onModeChange('chat')}
+            title="Chat: Conversational dialectical dialogue powered by NVIDIA Nemotron"
+            aria-checked={mode === 'chat'}
+            role="radio"
+          >
+            <span>Chat</span>
+          </button>
+          <button
+            type="button"
+            className={`mode-pill ${mode === 'investigate' ? 'active' : ''}`}
+            onClick={() => onModeChange('investigate')}
+            title="Investigate: Launch deep autonomous evidence retrieval and falsification analysis"
+            aria-checked={mode === 'investigate'}
+            role="radio"
+          >
+            <span>Investigate</span>
+          </button>
+        </div>
+
+        {/* Listening live badge indicator */}
+        {isListening && (
+          <div className="composer-listening-indicator" aria-live="polite">
+            <span className="listening-dot" />
+            <span>LISTENING — SPEAK NOW</span>
+          </div>
+        )}
+
+        {isSpeaking && (
+          <div className="composer-speaking-indicator" aria-live="polite">
+            <span className="speaking-wave" />
+            <span>AI SPEAKING — TAP MIC TO SILENCE</span>
+          </div>
+        )}
+      </div>
+
       {/* Speech or validation feedback alert */}
-      {speechError && (
+      {alertMessage && (
         <div className="composer-alert-banner" role="alert">
           <span className="alert-icon">!</span>
-          <span className="alert-msg">{speechError}</span>
+          <span className="alert-msg">{alertMessage}</span>
           <button
             type="button"
             className="alert-dismiss"
-            onClick={() => setSpeechError(null)}
+            onClick={() => setLocalAlert(null)}
             aria-label="Dismiss alert"
           >
             &times;
@@ -351,7 +315,11 @@ export function ChatGPTComposer({
 
       {/* Main Composer Capsule */}
       <form onSubmit={handleSubmit} className="composer-form-container">
-        <div className="composer-capsule">
+        <div
+          className={`composer-capsule ${isListening ? 'state-listening' : ''} ${
+            isThinking ? 'state-thinking' : ''
+          } ${isSpeaking ? 'state-speaking' : ''} ${isError ? 'state-error' : ''}`}
+        >
           {/* Plus action button with dropdown */}
           <div className="composer-plus-wrapper" ref={menuRef}>
             <button
@@ -436,37 +404,51 @@ export function ChatGPTComposer({
               id={inputId}
               ref={textareaRef}
               className="composer-textarea"
-              placeholder={isListening ? 'Listening... Speak your hypothesis now' : placeholder}
+              placeholder={
+                isListening
+                  ? 'Listening... Speak your claim or question (review before sending)'
+                  : placeholder
+              }
               aria-label="Message Contra"
               value={hypothesis}
               onChange={(e) => onHypothesisChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={isResearching}
+              disabled={isThinking}
               rows={1}
             />
           </div>
 
-          {/* Right Action Cluster: Microphone & Send Button */}
+          {/* Right Action Cluster: Single Unified Microphone & Send Button */}
           <div className="composer-actions-right">
-            {/* Microphone Voice Button */}
+            {/* Unified Voice Microphone Control */}
             <button
               type="button"
               className={`composer-btn composer-mic-btn ${isListening ? 'recording' : ''} ${
-                !isSpeechAvailable ? 'unavailable' : ''
-              }`}
-              onClick={toggleVoiceRecording}
-              aria-label={isListening ? 'Stop voice recording' : 'Speak hypothesis via microphone'}
-              title={
-                !isSpeechAvailable
-                  ? 'Voice input unavailable in this browser'
-                  : isListening
-                  ? 'Stop voice recording (Click to finish)'
-                  : 'Speak hypothesis via microphone'
+                isSpeaking ? 'speaking-active' : ''
+              } ${isError ? 'error-btn' : ''}`}
+              onClick={handleMicClick}
+              aria-label={
+                isListening
+                  ? 'Stop voice recording'
+                  : isSpeaking
+                    ? 'Silence AI voice'
+                    : 'Speak via microphone'
               }
-              disabled={isResearching}
+              title={
+                isListening
+                  ? 'Click to stop voice recording and review text'
+                  : isSpeaking
+                    ? 'Click to stop audio synthesis'
+                    : 'Voice input (Click to speak)'
+              }
+              disabled={isThinking}
             >
               {isListening ? (
                 <span className="mic-listening-pulse" aria-hidden="true" />
+              ) : isSpeaking ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
+                </svg>
               ) : (
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
                   <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
@@ -481,11 +463,11 @@ export function ChatGPTComposer({
             <button
               type="submit"
               className="composer-send-btn"
-              disabled={!hypothesis.trim() || isResearching}
+              disabled={!hypothesis.trim() || isThinking}
               aria-label="Send message"
               title="Send message (Enter)"
             >
-              {isResearching ? (
+              {isThinking ? (
                 <span className="send-spinner" aria-hidden="true" />
               ) : (
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">

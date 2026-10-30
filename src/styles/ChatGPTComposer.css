@@ -516,3 +516,133 @@
     transform: rotate(360deg);
   }
 }
+
+/* Mode Selector Header Bar */
+.composer-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  gap: 12px;
+}
+
+.composer-mode-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #0d0d0d;
+  border: 1px solid #1f1f1f;
+  border-radius: 20px;
+  padding: 3px;
+}
+
+.mode-pill {
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  padding: 4px 11px;
+  font-family: var(--dp-typography-face);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #777777;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--dp-motion-duration) var(--dp-motion-ease);
+}
+
+.mode-pill:hover {
+  color: var(--dp-color-bright);
+}
+
+.mode-pill.active {
+  background: #1e1e1e;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.mode-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3fd6c6;
+  box-shadow: 0 0 6px #3fd6c6;
+}
+
+.composer-listening-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--dp-typography-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: #3fd6c6;
+  background: rgba(63, 214, 198, 0.08);
+  border: 1px solid rgba(63, 214, 198, 0.25);
+  padding: 3px 10px;
+  border-radius: 12px;
+  animation: composerFadeIn 120ms ease-out;
+}
+
+.listening-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3fd6c6;
+  animation: micPulse 1.2s infinite ease-in-out;
+}
+
+.composer-speaking-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--dp-typography-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: #3fd6c6;
+  background: rgba(63, 214, 198, 0.08);
+  border: 1px solid rgba(63, 214, 198, 0.25);
+  padding: 3px 10px;
+  border-radius: 12px;
+  animation: composerFadeIn 120ms ease-out;
+}
+
+.speaking-wave {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3fd6c6;
+  animation: micPulse 0.8s infinite ease-in-out;
+}
+
+/* Capsule Dynamic States */
+.composer-capsule.state-listening {
+  border-color: rgba(63, 214, 198, 0.65);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(63, 214, 198, 0.22);
+}
+
+.composer-capsule.state-thinking {
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 16px rgba(168, 85, 247, 0.2);
+}
+
+.composer-capsule.state-speaking {
+  border-color: rgba(63, 214, 198, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 16px rgba(63, 214, 198, 0.15);
+}
+
+.composer-capsule.state-error {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 16px rgba(239, 68, 68, 0.15);
+}
+
+.composer-mic-btn.speaking-active {
+  background: rgba(63, 214, 198, 0.15);
+  color: #3fd6c6;
+  border: 1px solid rgba(63, 214, 198, 0.4);
+}
+
+.composer-mic-btn.error-btn {
+  color: #ef4444;
+}
